@@ -1,0 +1,203 @@
+### Base URL variables
+@baseUrl = http://localhost:5000/api
+@authToken = YOUR_JWT_TOKEN_HERE
+@targetLaptopId = LAPTOP_ID_HERE
+@reviewId = REVIEW_ID_HERE
+@notificationId = NOTIFICATION_ID_HERE
+
+#########################################
+# 1. Authentication APIs
+#########################################
+
+### Register User
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "name": "Jane Doe",
+  "email": "janedoe@example.com",
+  "password": "SecurePassword123"
+}
+
+### Login User
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "janedoe@example.com",
+  "password": "SecurePassword123"
+}
+
+### Forgot Password Request
+POST {{baseUrl}}/auth/forgot-password
+Content-Type: application/json
+
+{
+  "email": "janedoe@example.com"
+}
+
+### Change Password (Requires token)
+PUT {{baseUrl}}/auth/change-password
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "oldPassword": "SecurePassword123",
+  "newPassword": "NewSecurePassword123"
+}
+
+
+#########################################
+# 2. Laptop Catalog APIs
+#########################################
+
+### Get All Laptops (Filtered and Paginated)
+GET {{baseUrl}}/laptops?brand=ASUS,HP&minPrice=50000&maxPrice=150000&sort=price_asc&page=1&limit=10
+
+### Get Single Laptop Detail
+GET {{baseUrl}}/laptops/{{targetLaptopId}}
+
+### [Admin] Add New Laptop (Requires Admin Auth & form-data for uploads)
+# NOTE: Can be tested via Postman using multipart/form-data for image uploads.
+# Below is a JSON representation for raw endpoints that bypass upload filters.
+
+
+#########################################
+# 3. Recommendation Engine APIs
+#########################################
+
+### Wizard Recommendations (Gaming weight profile)
+POST {{baseUrl}}/recommend/wizard
+Content-Type: application/json
+
+{
+  "purpose": "Gaming",
+  "maxPrice": 120000,
+  "answers": {
+    "portabilityCritical": false,
+    "batteryIsCritical": false
+  }
+}
+
+### Wizard Recommendations (Programming with custom weights)
+POST {{baseUrl}}/recommend/wizard
+Content-Type: application/json
+
+{
+  "purpose": "Programming",
+  "maxPrice": 130000,
+  "answers": {
+    "portabilityCritical": true,
+    "batteryIsCritical": true
+  }
+}
+
+### Gemini AI Natural Language Recommendation
+POST {{baseUrl}}/recommend/ai
+Content-Type: application/json
+
+{
+  "query": "I need an Apple or HP laptop around ₹1,00,000 for web programming and watching movies."
+}
+
+### Fetch User Recommendation Logs
+GET {{baseUrl}}/recommend/history
+Authorization: Bearer {{authToken}}
+
+
+#########################################
+# 4. User Wishlist APIs
+#########################################
+
+### Get Wishlist
+GET {{baseUrl}}/wishlist
+Authorization: Bearer {{authToken}}
+
+### Add Laptop to Wishlist
+POST {{baseUrl}}/wishlist/add
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "laptopId": "{{targetLaptopId}}"
+}
+
+### Remove Laptop from Wishlist
+DELETE {{baseUrl}}/wishlist/remove/{{targetLaptopId}}
+Authorization: Bearer {{authToken}}
+
+
+#########################################
+# 5. Reviews and Ratings APIs
+#########################################
+
+### Add Review for Laptop
+POST {{baseUrl}}/reviews
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "laptop": "{{targetLaptopId}}",
+  "rating": 5,
+  "comment": "Excellent compile speeds and typing deck. Extremely portable!"
+}
+
+### Edit Review
+PUT {{baseUrl}}/reviews/{{reviewId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "rating": 4,
+  "comment": "Great compile speeds and typing deck, though screen could be brighter."
+}
+
+### Toggle Like on a Review
+POST {{baseUrl}}/reviews/{{reviewId}}/like
+Authorization: Bearer {{authToken}}
+
+
+#########################################
+# 6. Auto-completions and Queries Analytics
+#########################################
+
+### Search Autocomplete
+GET {{baseUrl}}/search/autocomplete?q=mac
+
+### Popular/Trending Search Queries
+GET {{baseUrl}}/search/popular
+
+### User Search Queries History Log
+GET {{baseUrl}}/search/history
+Authorization: Bearer {{authToken}}
+
+
+#########################################
+# 7. Alerts Center APIs
+#########################################
+
+### Get Alert Notifications (Price drops, wishlist items)
+GET {{baseUrl}}/notifications
+Authorization: Bearer {{authToken}}
+
+### Mark Notification Alert as Read
+PUT {{baseUrl}}/notifications/{{notificationId}}/read
+Authorization: Bearer {{authToken}}
+
+
+#########################################
+# 8. Admin Control Dashboard APIs
+#########################################
+
+### Get General Platform Statistics
+GET {{baseUrl}}/admin/stats
+Authorization: Bearer {{authToken}}
+
+### Get Top Wishlisted & Recommendations Analytics
+GET {{baseUrl}}/admin/analytics
+Authorization: Bearer {{authToken}}
+
+### Get All Registered Users
+GET {{baseUrl}}/admin/users
+Authorization: Bearer {{authToken}}
