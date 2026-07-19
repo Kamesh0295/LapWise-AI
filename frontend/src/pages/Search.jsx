@@ -168,7 +168,7 @@ const Search = () => {
   const ram = searchParams.get('ram') || '';
   const minPrice = searchParams.get('minPrice') || '';
   const maxPrice = searchParams.get('maxPrice') || '';
-  const sort = searchParams.get('sort') || '';
+  const sort = searchParams.get('sort') || 'newest';
   const search = searchParams.get('search') || '';
   const launchYear = searchParams.get('launchYear') || '';
   const storage = searchParams.get('storage') || '';
@@ -178,12 +178,15 @@ const Search = () => {
   const refreshRate = searchParams.get('refreshRate') || '';
   const operatingSystem = searchParams.get('operatingSystem') || '';
   const battery = searchParams.get('battery') || '';
+  const weight = searchParams.get('weight') || '';
+  const rating = searchParams.get('rating') || '';
+  const trending = searchParams.get('trending') || '';
 
   // Main React Query fetch resolver
   const { data: laptopsDataRes, isLoading, isError, refetch } = useQuery({
     queryKey: [
       'laptopsCatalog', page, brand, purpose, ram, minPrice, maxPrice, sort, 
-      search, launchYear, storage, gpu, processor, display, refreshRate, operatingSystem, battery
+      search, launchYear, storage, gpu, processor, display, refreshRate, operatingSystem, battery, weight, rating, trending
     ],
     queryFn: () => {
       const params = {
@@ -202,14 +205,17 @@ const Search = () => {
         display,
         refreshRate,
         operatingSystem,
-        battery
+        battery,
+        weight,
+        rating,
+        trending
       };
 
       if (search) {
         return laptopService.searchCatalog({ q: search, ...params });
       } else if (
         brand || purpose || ram || minPrice || maxPrice || launchYear || storage || 
-        gpu || processor || display || refreshRate || operatingSystem || battery
+        gpu || processor || display || refreshRate || operatingSystem || battery || weight || rating || trending
       ) {
         return laptopService.filterCatalog(params);
       } else {
@@ -221,6 +227,7 @@ const Search = () => {
 
   const laptops = laptopsDataRes?.data?.laptops || [];
   const pagination = laptopsDataRes?.data?.pagination || { currentPage: 1, totalPages: 1 };
+  const isRelaxed = laptopsDataRes?.data?.relaxed || false;
 
   // Append new laptops on infinite scroll / pagination page updates
   useEffect(() => {
@@ -248,15 +255,12 @@ const Search = () => {
 
   // Categorize for sections inside empty state view
   const sections = {
-    trending: fallbackLaptops.filter(l => l.rating >= 4.0).sort((a, b) => b.rating - a.rating).slice(0, 10),
+    similar: fallbackLaptops.slice(0, 10),
+    trending: fallbackLaptops.filter(l => l.rating >= 4.3).sort((a, b) => b.rating - a.rating).slice(0, 10),
+    budget: fallbackLaptops.filter(l => l.price < 55000).sort((a, b) => a.price - b.price).slice(0, 10),
+    gaming: fallbackLaptops.filter(l => l.purpose?.includes('Gaming') || l.category?.toLowerCase().includes('gaming')).slice(0, 10),
     latest: [...fallbackLaptops].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 10),
-    budget: fallbackLaptops.filter(l => l.price < 50000).slice(0, 10),
-    gaming: fallbackLaptops.filter(l => l.purpose?.includes('Gaming')).slice(0, 10),
-    programming: fallbackLaptops.filter(l => l.purpose?.includes('Programming')).slice(0, 10),
-    student: fallbackLaptops.filter(l => l.purpose?.includes('Student')).slice(0, 10),
-    business: fallbackLaptops.filter(l => l.purpose?.includes('Office') || l.purpose?.includes('General')).slice(0, 10),
-    aiml: fallbackLaptops.filter(l => l.purpose?.includes('AI / ML')).slice(0, 10),
-    editorsChoice: fallbackLaptops.filter(l => l.rating >= 4.5).slice(0, 10)
+    editorsChoice: fallbackLaptops.filter(l => l.rating >= 4.6).slice(0, 10)
   };
 
   // Intersection Observer for Automatic Infinite Scroll
@@ -288,6 +292,26 @@ const Search = () => {
     });
 
     setSearchParams(merged);
+  };
+
+  const handleQuickFilterClick = (catParams) => {
+    const params = new URLSearchParams(searchParams);
+    
+    // Requirements: Use params.delete() to remove old query parameters before adding new ones
+    const filterKeys = ['brand', 'purpose', 'ram', 'minPrice', 'maxPrice', 'sort', 'search', 'launchYear', 'storage', 'gpu', 'processor', 'display', 'refreshRate', 'operatingSystem', 'battery', 'weight', 'rating', 'trending'];
+    filterKeys.forEach(key => params.delete(key));
+
+    // Reset page to 1
+    params.set('page', '1');
+
+    // Add new parameters
+    Object.entries(catParams).forEach(([key, val]) => {
+      if (val) {
+        params.set(key, val);
+      }
+    });
+
+    setSearchParams(params);
   };
 
   const handleSearchSubmit = (e) => {
@@ -418,19 +442,27 @@ const Search = () => {
         {/* Quick Categories filter buttons */}
         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none text-xs border-b border-gray-100 dark:border-gray-800/60 pt-2">
           {[
-            { label: "All Laptops", params: { purpose: "", sort: "", minPrice: "", maxPrice: "", search: "" } },
-            { label: "Trending Now", params: { sort: "rating_desc" } },
+            { label: "All Laptops", params: {} },
+            { label: "Trending Now", params: { trending: "true" } },
             { label: "Gaming Beasts", params: { purpose: "Gaming" } },
             { label: "Developer Picks", params: { purpose: "Programming" } },
             { label: "Student Budget", params: { purpose: "Student", maxPrice: "45000" } },
             { label: "AI / ML Workstations", params: { purpose: "AI / ML" } },
             { label: "Premium OLED Displays", params: { display: "OLED" } }
           ].map((cat, idx) => {
-            const isActive = Object.entries(cat.params).every(([key, val]) => searchParams.get(key) === val || (!searchParams.get(key) && !val));
+            const isFilterActive = (catParams) => {
+              const keys = Object.keys(catParams);
+              if (keys.length === 0) {
+                const hasFilters = Array.from(searchParams.keys()).some(k => k !== 'page');
+                return !hasFilters;
+              }
+              return keys.every(key => searchParams.get(key) === catParams[key]);
+            };
+            const isActive = isFilterActive(cat.params);
             return (
               <button
                 key={idx}
-                onClick={() => updateParams(cat.params)}
+                onClick={() => handleQuickFilterClick(cat.params)}
                 className={`px-4 py-2 rounded-xl font-bold whitespace-nowrap transition-all border ${
                   isActive 
                     ? "bg-primary-500 text-white border-primary-500 shadow-sm" 
@@ -482,10 +514,12 @@ const Search = () => {
                 onChange={(e) => updateParams({ sort: e.target.value })}
                 className="w-full p-2.5 text-xs rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-darkCard focus:outline-none focus:ring-1 focus:ring-primary-500"
               >
-                <option value="">Default (Newest)</option>
-                <option value="price_asc">Price: Low to High</option>
-                <option value="price_desc">Price: High to Low</option>
-                <option value="rating_desc">Average Rating</option>
+                <option value="newest">Newest</option>
+                <option value="price_asc">Price Low to High</option>
+                <option value="price_desc">Price High to Low</option>
+                <option value="rating_desc">Highest Rated</option>
+                <option value="popular_desc">Most Popular</option>
+                <option value="latest_added">Latest Added</option>
               </select>
             </div>
 
@@ -618,26 +652,31 @@ const Search = () => {
                 </div>
               </details>
 
-              {/* Display & Screen panel */}
-              <details className="group space-y-2 border-b border-gray-100 dark:border-gray-800/60 pb-3">
-                <summary className="flex justify-between items-center cursor-pointer list-none font-outfit font-bold text-xs text-gray-700 dark:text-gray-200">
-                  <span>Display Type</span>
-                  <ChevronRight className="w-3.5 h-3.5 transition-transform group-open:rotate-90 text-gray-400" />
-                </summary>
-                <div className="pt-2 space-y-1.5 text-xs">
-                  {['OLED', 'IPS', 'Retina'].map(d => (
-                    <label key={d} className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={display.split(',').includes(d)}
-                        onChange={() => toggleFilterParam('display', d)}
-                        className="rounded border-gray-300 text-primary-500 focus:ring-primary-500 w-3.5 h-3.5"
-                      />
-                      <span className="font-semibold text-gray-600 dark:text-gray-300">{d}</span>
-                    </label>
-                  ))}
-                </div>
-              </details>
+              {/* Display Type Dropdown */}
+              <div className="space-y-2 pb-3 border-b border-gray-100 dark:border-gray-800/60">
+                <label className="font-outfit font-bold text-xs text-gray-700 dark:text-gray-200 block">Display Type</label>
+                <select
+                  value={display}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === '') {
+                      const newParams = Object.fromEntries(searchParams.entries());
+                      delete newParams.display;
+                      newParams.page = '1';
+                      setSearchParams(newParams);
+                    } else {
+                      updateParams({ display: val });
+                    }
+                  }}
+                  className="w-full p-2.5 text-xs rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-darkCard focus:outline-none focus:ring-1 focus:ring-primary-500 text-gray-600 dark:text-gray-300 font-semibold"
+                >
+                  <option value="">All Displays</option>
+                  <option value="OLED">OLED</option>
+                  <option value="IPS">IPS</option>
+                  <option value="Mini LED">Mini LED</option>
+                  <option value="Touchscreen">Touchscreen</option>
+                </select>
+              </div>
 
               {/* Refresh Rate panel */}
               <details className="group space-y-2 border-b border-gray-100 dark:border-gray-800/60 pb-3">
@@ -680,6 +719,100 @@ const Search = () => {
                   ))}
                 </div>
               </details>
+
+              {/* Battery */}
+              <details className="group space-y-2 border-b border-gray-100 dark:border-gray-800/60 pb-3">
+                <summary className="flex justify-between items-center cursor-pointer list-none font-outfit font-bold text-xs text-gray-700 dark:text-gray-200">
+                  <span>Battery Specification</span>
+                  <ChevronRight className="w-3.5 h-3.5 transition-transform group-open:rotate-90 text-gray-400" />
+                </summary>
+                <div className="pt-2 space-y-1.5 text-xs">
+                  {['Integrated Battery', 'Long Life Battery'].map(b => (
+                    <label key={b} className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={battery.split(',').includes(b)}
+                        onChange={() => toggleFilterParam('battery', b)}
+                        className="rounded border-gray-300 text-primary-500 focus:ring-primary-500 w-3.5 h-3.5"
+                      />
+                      <span className="font-semibold text-gray-600 dark:text-gray-300">{b}</span>
+                    </label>
+                  ))}
+                </div>
+              </details>
+
+              {/* Weight */}
+              <details className="group space-y-2 border-b border-gray-100 dark:border-gray-800/60 pb-3">
+                <summary className="flex justify-between items-center cursor-pointer list-none font-outfit font-bold text-xs text-gray-700 dark:text-gray-200">
+                  <span>Weight Class</span>
+                  <ChevronRight className="w-3.5 h-3.5 transition-transform group-open:rotate-90 text-gray-400" />
+                </summary>
+                <div className="pt-2 space-y-1.5 text-xs">
+                  {[
+                    { label: "Ultraportable (< 1.5kg)", value: "light" },
+                    { label: "Standard (1.5 - 2.0kg)", value: "medium" },
+                    { label: "Desktop Replacement (> 2.0kg)", value: "heavy" }
+                  ].map(w => (
+                    <label key={w.value} className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={weight.split(',').includes(w.value)}
+                        onChange={() => toggleFilterParam('weight', w.value)}
+                        className="rounded border-gray-300 text-primary-500 focus:ring-primary-500 w-3.5 h-3.5"
+                      />
+                      <span className="font-semibold text-gray-600 dark:text-gray-300">{w.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </details>
+
+              {/* Rating */}
+              <details className="group space-y-2 border-b border-gray-100 dark:border-gray-800/60 pb-3">
+                <summary className="flex justify-between items-center cursor-pointer list-none font-outfit font-bold text-xs text-gray-700 dark:text-gray-200">
+                  <span>Minimum Rating</span>
+                  <ChevronRight className="w-3.5 h-3.5 transition-transform group-open:rotate-90 text-gray-400" />
+                </summary>
+                <div className="pt-2 space-y-1.5 text-xs">
+                  {[
+                    { label: "All Ratings", value: "" },
+                    { label: "4.5 ★ & above", value: "4.5" },
+                    { label: "4.0 ★ & above", value: "4.0" },
+                    { label: "3.5 ★ & above", value: "3.5" }
+                  ].map(r => (
+                    <label key={r.value} className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="rating"
+                        checked={rating === r.value}
+                        onChange={() => updateParams({ rating: r.value })}
+                        className="border-gray-300 text-primary-500 focus:ring-primary-500 w-3.5 h-3.5"
+                      />
+                      <span className="font-semibold text-gray-600 dark:text-gray-300">{r.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </details>
+
+              {/* Launch Year */}
+              <details className="group space-y-2 border-b border-gray-100 dark:border-gray-800/60 pb-3">
+                <summary className="flex justify-between items-center cursor-pointer list-none font-outfit font-bold text-xs text-gray-700 dark:text-gray-200">
+                  <span>Launch Year</span>
+                  <ChevronRight className="w-3.5 h-3.5 transition-transform group-open:rotate-90 text-gray-400" />
+                </summary>
+                <div className="pt-2 space-y-1.5 text-xs">
+                  {['2024', '2023', '2022'].map(y => (
+                    <label key={y} className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={launchYear.split(',').includes(y)}
+                        onChange={() => toggleFilterParam('launchYear', y)}
+                        className="rounded border-gray-300 text-primary-500 focus:ring-primary-500 w-3.5 h-3.5"
+                      />
+                      <span className="font-semibold text-gray-600 dark:text-gray-300">{y}</span>
+                    </label>
+                  ))}
+                </div>
+              </details>
             </div>
           </div>
 
@@ -718,15 +851,15 @@ const Search = () => {
             <div className="space-y-12 animate-fade-in">
               <div className="text-center py-12 border border-dashed border-gray-200 dark:border-darkBorder rounded-3xl text-gray-400 space-y-3">
                 <Info className="w-8 h-8 mx-auto text-gray-300" />
-                <h4 className="font-outfit font-bold text-xs text-gray-600 dark:text-gray-300">No matching laptops found</h4>
-                <p className="text-[10px] text-gray-400 max-w-xs mx-auto">Try clearing search parameters or refining specification filters. Meanwhile, check these picks below!</p>
+                <h4 className="font-outfit font-bold text-xs text-gray-600 dark:text-gray-300">Recommendations For You</h4>
+                <p className="text-[10px] text-gray-400 max-w-xs mx-auto">Here are similar and trending laptop picks suited for your query.</p>
               </div>
 
               {/* Show Sections dynamically based on fallback query data */}
               <div className="space-y-6 pt-4">
                 <ProductCarousel 
-                  title="Editor's Choice Laptops" 
-                  products={sections.editorsChoice} 
+                  title="Similar Laptops" 
+                  products={sections.similar} 
                   handleWishlistToggle={handleWishlistToggle}
                   handleCompareToggle={handleCompareToggle}
                   isWishlisted={isWishlisted}
@@ -743,7 +876,7 @@ const Search = () => {
                 />
 
                 <ProductCarousel 
-                  title="Budget Hot Picks" 
+                  title="Budget Picks" 
                   products={sections.budget} 
                   handleWishlistToggle={handleWishlistToggle}
                   handleCompareToggle={handleCompareToggle}
@@ -752,7 +885,7 @@ const Search = () => {
                 />
 
                 <ProductCarousel 
-                  title="Gaming Workstations" 
+                  title="Gaming Picks" 
                   products={sections.gaming} 
                   handleWishlistToggle={handleWishlistToggle}
                   handleCompareToggle={handleCompareToggle}
@@ -761,44 +894,17 @@ const Search = () => {
                 />
 
                 <ProductCarousel 
-                  title="Developer Recommendations" 
-                  products={sections.programming} 
-                  handleWishlistToggle={handleWishlistToggle}
-                  handleCompareToggle={handleCompareToggle}
-                  isWishlisted={isWishlisted}
-                  isInCompareList={isInCompareList}
-                />
-
-                <ProductCarousel 
-                  title="Student & Casual Picks" 
-                  products={sections.student} 
-                  handleWishlistToggle={handleWishlistToggle}
-                  handleCompareToggle={handleCompareToggle}
-                  isWishlisted={isWishlisted}
-                  isInCompareList={isInCompareList}
-                />
-
-                <ProductCarousel 
-                  title="Business & Office Laptops" 
-                  products={sections.business} 
-                  handleWishlistToggle={handleWishlistToggle}
-                  handleCompareToggle={handleCompareToggle}
-                  isWishlisted={isWishlisted}
-                  isInCompareList={isInCompareList}
-                />
-
-                <ProductCarousel 
-                  title="AI / ML Powerhouses" 
-                  products={sections.aiml} 
-                  handleWishlistToggle={handleWishlistToggle}
-                  handleCompareToggle={handleCompareToggle}
-                  isWishlisted={isWishlisted}
-                  isInCompareList={isInCompareList}
-                />
-
-                <ProductCarousel 
-                  title="Latest Releases" 
+                  title="Latest Laptops" 
                   products={sections.latest} 
+                  handleWishlistToggle={handleWishlistToggle}
+                  handleCompareToggle={handleCompareToggle}
+                  isWishlisted={isWishlisted}
+                  isInCompareList={isInCompareList}
+                />
+
+                <ProductCarousel 
+                  title="Editor's Choice" 
+                  products={sections.editorsChoice} 
                   handleWishlistToggle={handleWishlistToggle}
                   handleCompareToggle={handleCompareToggle}
                   isWishlisted={isWishlisted}
@@ -809,6 +915,15 @@ const Search = () => {
           ) : (
             /* RESULTS CATALOG GRID */
             <>
+              {isRelaxed && (
+                <div className="bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 p-4 rounded-2xl flex items-start gap-3 text-xs font-semibold mb-6 w-full col-span-full">
+                  <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-bold text-amber-800 dark:text-amber-400">No exact matches found for your criteria.</p>
+                    <p className="text-amber-700 dark:text-amber-500 font-medium mt-1">We relaxed some of your specification filters to show you similar laptops instead.</p>
+                  </div>
+                </div>
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {displayedLaptops.map(laptop => (
                   <div 

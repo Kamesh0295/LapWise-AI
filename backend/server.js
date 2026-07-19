@@ -8,18 +8,22 @@ const morgan = require('morgan');
 const connectDB = require('./config/db');
 
 // Error middlewares and custom classes
-const errorHandler = require('./middlewares/errorMiddleware');
+const errorHandler = require('./middlewares/errorHandler');
 const { NotFoundError } = require('./utils/AppError');
 
 // Route imports
 const authRoutes = require('./routes/authRoutes');
 const laptopRoutes = require('./routes/laptopRoutes');
+const catalogRoutes = require('./routes/catalogRoutes');
 const recommendRoutes = require('./routes/recommendRoutes');
 const wishlistRoutes = require('./routes/wishlistRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const searchRoutes = require('./routes/searchRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
+
+// Services for catalog sync
+const catalogSyncService = require('./services/catalogSyncService');
 
 // Handle uncaught exceptions globally
 process.on('uncaughtException', (err) => {
@@ -32,7 +36,13 @@ process.on('uncaughtException', (err) => {
 const app = express();
 
 // Connect to MongoDB Database
-connectDB();
+connectDB().then(() => {
+  // Initialize and schedule catalog syncing
+  catalogSyncService.initializeCatalog();
+  catalogSyncService.startBackgroundSyncScheduler();
+}).catch(err => {
+  console.error('Failed to initialize database services:', err.message);
+});
 
 // Setup security HTTP headers
 app.use(helmet());
@@ -57,7 +67,7 @@ app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 // Mount Application API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/laptops', laptopRoutes);
-app.use('/api/catalog', laptopRoutes);
+app.use('/api/catalog', catalogRoutes);
 app.use('/api/recommend', recommendRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/reviews', reviewRoutes);
