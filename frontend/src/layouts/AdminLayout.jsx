@@ -11,6 +11,7 @@ import {
   MdHome
 } from 'react-icons/md';
 import { useAuth } from '../context/AuthContext';
+import UserAvatar from '../components/common/UserAvatar';
 
 const AdminLayout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -50,11 +51,7 @@ const AdminLayout = ({ children }) => {
 
           {/* User profile brief card */}
           <div className="p-4 border-b border-gray-200 dark:border-darkBorder flex items-center gap-3">
-            <img 
-              src={user?.profileImage} 
-              alt="Admin Avatar" 
-              className="w-10 h-10 rounded-full border-2 border-primary-500 object-cover"
-            />
+            <UserAvatar user={user} size="w-10 h-10" />
             <div className="overflow-hidden">
               <h4 className="font-semibold text-sm truncate">{user?.name}</h4>
               <span className="text-xs text-gray-500 dark:text-gray-400 capitalize">{user?.role} Mode</span>

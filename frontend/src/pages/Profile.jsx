@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import UserAvatar from '../components/common/UserAvatar';
 import { MdSettings, MdLock, MdCheckCircle } from 'react-icons/md';
 import authService from '../services/authService';
 
@@ -16,11 +17,10 @@ const Profile = () => {
   const [successMsg, setSuccessMsg] = useState('');
   const [loading, setLoading] = useState(false);
 
-  React.useEffect(() => {
-    if (!isAuthenticated) {
-      navigate('/login?redirect=/profile');
-    }
-  }, [isAuthenticated, navigate]);
+  if (!isAuthenticated) {
+    navigate('/login');
+    return null;
+  }
 
   const handlePasswordChange = async (e) => {
     e.preventDefault();
@@ -28,11 +28,17 @@ const Profile = () => {
     setSuccessMsg('');
 
     if (newPassword !== confirmPassword) {
-      setErrorMsg('New password and confirmation password do not match.');
+      setErrorMsg('New passwords do not match');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setErrorMsg('Password must be at least 6 characters long');
       return;
     }
 
     setLoading(true);
+
     try {
       await authService.changePassword({ oldPassword, newPassword });
       setSuccessMsg('Password updated successfully!');
@@ -40,7 +46,7 @@ const Profile = () => {
       setNewPassword('');
       setConfirmPassword('');
     } catch (err) {
-      setErrorMsg(err.message || 'Failed to change password. Make sure old password is correct.');
+      setErrorMsg(err.response?.data?.message || 'Failed to update password');
     } finally {
       setLoading(false);
     }
@@ -60,11 +66,7 @@ const Profile = () => {
         {/* Left Card: Account details */}
         <div className="bg-white dark:bg-darkCard border border-gray-200/60 dark:border-darkBorder rounded-3xl p-6 shadow-sm h-fit space-y-6">
           <div className="flex flex-col items-center text-center">
-            <img 
-              src={user?.profileImage} 
-              alt="Avatar" 
-              className="w-20 h-20 rounded-full border-4 border-primary-500 object-cover shadow-sm"
-            />
+            <UserAvatar user={user} size="w-20 h-20" />
             <h3 className="font-outfit font-bold mt-4 text-base">{user?.name}</h3>
             <span className="text-[10px] px-2.5 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-400 rounded-full font-bold uppercase tracking-wider mt-1">{user?.role}</span>
           </div>

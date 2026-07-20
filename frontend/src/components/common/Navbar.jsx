@@ -18,6 +18,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { useCompare } from '../../context/CompareContext';
 import notificationService from '../../services/notificationService';
+import UserAvatar from './UserAvatar';
 
 const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -197,23 +198,23 @@ const Navbar = () => {
 
           {/* User Profile dropdown */}
           {isAuthenticated ? (
-            <div className="relative" ref={profileRef}>
+            <div className="relative flex items-center" ref={profileRef}>
               <button 
                 onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                className="flex items-center gap-2 focus:outline-none"
+                className="flex items-center justify-center focus:outline-none rounded-full transition-all"
+                aria-label="User profile menu"
               >
-                <img 
-                  src={user?.profileImage} 
-                  alt="Profile" 
-                  className="w-8 h-8 rounded-full border-2 border-primary-500 object-cover"
-                />
+                <UserAvatar user={user} size="w-8 h-8 sm:w-10 sm:h-10" />
               </button>
 
               {profileDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-darkCard border border-gray-200 dark:border-darkBorder rounded-xl shadow-xl overflow-hidden z-50">
-                  <div className="p-3 border-b border-gray-200 dark:border-darkBorder">
-                    <p className="text-sm font-semibold truncate">{user?.name}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user?.email}</p>
+                <div className="absolute right-0 mt-2 w-52 bg-white dark:bg-darkCard border border-gray-200 dark:border-darkBorder rounded-xl shadow-xl overflow-hidden z-50">
+                  <div className="p-3 border-b border-gray-200 dark:border-darkBorder flex items-center gap-3 bg-gray-50/50 dark:bg-gray-800/30">
+                    <UserAvatar user={user} size="w-9 h-9" />
+                    <div className="overflow-hidden">
+                      <p className="text-sm font-semibold truncate">{user?.name}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user?.email}</p>
+                    </div>
                   </div>
                   <div className="p-1.5 space-y-0.5">
                     <Link to="/dashboard" onClick={() => setProfileDropdownOpen(false)} className="flex items-center gap-2 px-3 py-2 text-xs text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg">
@@ -279,6 +280,13 @@ const Navbar = () => {
           {isAuthenticated && <Link to="/wishlist" onClick={() => setMobileMenuOpen(false)} className="py-2 text-sm font-semibold">My Wishlist ({wishlist.length})</Link>}
           {isAuthenticated ? (
             <>
+              <div className="flex items-center gap-3 pb-3 border-b border-gray-100 dark:border-gray-800">
+                <UserAvatar user={user} size="w-9 h-9" />
+                <div className="overflow-hidden">
+                  <p className="text-sm font-semibold truncate">{user?.name}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user?.email}</p>
+                </div>
+              </div>
               <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)} className="py-2 text-sm font-semibold">Dashboard</Link>
               {isAdmin && <Link to="/admin" onClick={() => setMobileMenuOpen(false)} className="py-2 text-sm font-semibold text-primary-500">Admin Console</Link>}
               <button onClick={handleSignOut} className="py-2 text-sm font-bold text-red-500 text-left">Sign Out</button>
