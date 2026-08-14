@@ -27,8 +27,12 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     try {
       const response = await authService.login(credentials);
-      setUser(response.data.user);
-      return response.data;
+      const userObj = response?.data?.user;
+      if (!userObj) {
+        throw new Error(response?.message || 'Login failed. Please check your email and password.');
+      }
+      setUser(userObj);
+      return response;
     } finally {
       setLoading(false);
     }
@@ -57,8 +61,12 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     try {
       const response = await authService.googleLogin(idToken);
-      setUser(response.data.user);
-      return response.data;
+      const userObj = response?.data?.user;
+      if (!userObj) {
+        throw new Error(response?.message || 'Google Sign-In failed.');
+      }
+      setUser(userObj);
+      return response;
     } finally {
       setLoading(false);
     }
