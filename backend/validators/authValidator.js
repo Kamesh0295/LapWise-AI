@@ -75,10 +75,21 @@ const changePasswordRules = [
   validate
 ];
 
+const resendVerificationRules = [
+  body('email')
+    .trim()
+    .notEmpty()
+    .withMessage('Email is required')
+    .isEmail()
+    .withMessage('Please specify a valid email address'),
+  validate
+];
+
 module.exports = {
   registerRules,
   loginRules,
   forgotPasswordRules,
   resetPasswordRules,
-  changePasswordRules
+  changePasswordRules,
+  resendVerificationRules
 };

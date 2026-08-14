@@ -60,7 +60,14 @@ const Login = () => {
         {/* Error alert banner */}
         {errorMsg && (
           <div className="p-4 mb-6 text-xs text-red-600 bg-red-50 dark:bg-red-950/20 dark:text-red-400 rounded-xl border border-red-100 dark:border-red-900/50">
-            {errorMsg}
+            <p>{errorMsg}</p>
+            {errorMsg.toLowerCase().includes('verify') && (
+              <div className="mt-2 pt-2 border-t border-red-200 dark:border-red-900/60">
+                <Link to="/verify-email" className="font-bold underline text-primary-500 hover:underline">
+                  Need a new verification link? Click here to resend
+                </Link>
+              </div>
+            )}
           </div>
         )}
 

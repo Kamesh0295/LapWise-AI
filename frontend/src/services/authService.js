@@ -48,6 +48,11 @@ const authService = {
     return response.data;
   },
 
+  resendVerification: async (email) => {
+    const response = await apiInstance.post('/auth/resend-verification', { email });
+    return response.data;
+  },
+
   googleLogin: async (idToken) => {
     const response = await apiInstance.post('/auth/google-login', { idToken });
     if (response.data?.data?.token) {

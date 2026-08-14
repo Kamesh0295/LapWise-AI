@@ -17,6 +17,9 @@ import Register from '../pages/Register';
 import Profile from '../pages/Profile';
 import Dashboard from '../pages/Dashboard';
 import Admin from '../pages/Admin';
+import VerifyEmail from '../pages/VerifyEmail';
+import ForgotPassword from '../pages/ForgotPassword';
+import ResetPassword from '../pages/ResetPassword';
 import NotFound from '../pages/NotFound';
 
 const AppRoutes = () => {
@@ -86,6 +89,30 @@ const AppRoutes = () => {
         element={
           <MainLayout>
             <Register />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/verify-email"
+        element={
+          <MainLayout>
+            <VerifyEmail />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/forgot-password"
+        element={
+          <MainLayout>
+            <ForgotPassword />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/reset-password"
+        element={
+          <MainLayout>
+            <ResetPassword />
           </MainLayout>
         }
       />

@@ -7,7 +7,8 @@ const {
   loginRules,
   forgotPasswordRules,
   resetPasswordRules,
-  changePasswordRules
+  changePasswordRules,
+  resendVerificationRules
 } = require('../validators/authValidator');
 
 const router = express.Router();
@@ -17,6 +18,7 @@ router.post('/register', authLimiter, registerRules, authController.register);
 router.post('/login', authLimiter, loginRules, authController.login);
 router.post('/logout', authController.logout);
 router.get('/verify-email/:token', authController.verifyEmail);
+router.post('/resend-verification', authLimiter, resendVerificationRules, authController.resendVerification);
 router.post('/forgot-password', authLimiter, forgotPasswordRules, authController.forgotPassword);
 router.post('/reset-password/:token', authLimiter, resetPasswordRules, authController.resetPassword);
 router.post('/google-login', authLimiter, authController.googleLogin);
