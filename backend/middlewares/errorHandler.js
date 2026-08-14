@@ -61,6 +61,14 @@ module.exports = (err, req, res, next) => {
   if (err.name === 'TokenExpiredError') {
     err = new AppError('Your authentication token has expired. Please log in again.', 401);
   }
+  if (
+    err.name === 'MongoServerSelectionError' ||
+    err.name === 'MongoNetworkError' ||
+    err.name === 'MongooseError' ||
+    err.name === 'MongoServerError'
+  ) {
+    err = new AppError(`Database error: ${err.message}`, 500);
+  }
 
   if (process.env.NODE_ENV === 'development') {
     sendErrorDev(err, req, res);
