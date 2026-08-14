@@ -2,15 +2,22 @@ const mongoose = require('mongoose');
 
 const connectDB = async () => {
   try {
-    if (!process.env.MONGODB_URI) {
-      throw new Error('MONGODB_URI environment variable is not defined in environment settings!');
+    const mongoUri = process.env.MONGODB_URI;
+    
+    if (!mongoUri) {
+      console.error('❌ MONGODB_URI is MISSING in process.env!');
+      throw new Error('MONGODB_URI environment variable is NOT set in Render Environment variables.');
     }
 
-    const conn = await mongoose.connect(process.env.MONGODB_URI);
+    // Mask sensitive credentials when logging connection attempt
+    const maskedUri = mongoUri.replace(/:([^@]+)@/, ':****@');
+    console.log(`Connecting to MongoDB at: ${maskedUri}`);
 
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
+    const conn = await mongoose.connect(mongoUri);
+
+    console.log(`✅ MongoDB Connected Successfully: ${conn.connection.host}`);
   } catch (error) {
-    console.error(`Database connection error: ${error.message}`);
+    console.error(`❌ Database connection error: ${error.message}`);
     process.exit(1); // Exit process with failure
   }
 };
