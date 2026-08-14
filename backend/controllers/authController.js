@@ -34,37 +34,43 @@ const register = async (req, res, next) => {
     const rawToken = generateRandomToken();
     const hashedVerificationToken = hashToken(rawToken);
 
+    // Automatically verify user if SMTP email service is not configured on Render
+    const requireVerification = process.env.REQUIRE_EMAIL_VERIFICATION === 'true' || 
+      (!!process.env.EMAIL_USER && process.env.EMAIL_USER !== 'your_smtp_user_name' && !process.env.EMAIL_USER.includes('your_'));
+
     // Create user (password will be hashed ONCE by User Mongoose pre-save hook)
     const user = await User.create({
       name: name.trim(),
       email: normalizedEmail,
       password,
-      isVerified: false,
+      isVerified: !requireVerification, // Auto-verify if email service is not configured
       verificationToken: hashedVerificationToken,
       verificationTokenExpire: Date.now() + 24 * 60 * 60 * 1000 // 24 hours validity
     });
 
-    console.log(`[AUTH] User created in database with ID: ${user._id}`);
+    console.log(`[AUTH] User created in database with ID: ${user._id} (isVerified: ${user.isVerified})`);
 
     // Automatically create a wishlist for the new user
     await Wishlist.create({ user: user._id });
 
-    // Send verification email
+    // Send verification email if verification is required
     let emailSent = false;
     let emailErrorMsg = '';
-    try {
-      await emailService.sendVerificationEmail(user, rawToken);
-      emailSent = true;
-      console.log(`[AUTH] Verification email sent successfully to ${normalizedEmail}`);
-    } catch (mailErr) {
-      console.error('❌ Registration verification email failed to send:', mailErr.message);
-      emailErrorMsg = mailErr.message;
+    if (requireVerification) {
+      try {
+        await emailService.sendVerificationEmail(user, rawToken);
+        emailSent = true;
+        console.log(`[AUTH] Verification email sent successfully to ${normalizedEmail}`);
+      } catch (mailErr) {
+        console.error('❌ Registration verification email failed to send:', mailErr.message);
+        emailErrorMsg = mailErr.message;
+      }
     }
 
     // Hide password before responding
     user.password = undefined;
 
-    if (!emailSent) {
+    if (requireVerification && !emailSent) {
       return res.status(201).json(
         formatResponse(
           'Registration successful! However, verification email could not be sent due to mail server setup. Please use the resend verification option once email settings are configured.',
@@ -73,8 +79,12 @@ const register = async (req, res, next) => {
       );
     }
 
+    const responseMsg = requireVerification
+      ? 'Registration successful! Please check your email to verify your account.'
+      : 'Registration successful! You can now log in directly.';
+
     res.status(201).json(
-      formatResponse('Registration successful! Please check your email to verify your account.', { user, emailSent: true })
+      formatResponse(responseMsg, { user, emailSent })
     );
   } catch (error) {
     next(error);
@@ -94,7 +104,7 @@ const login = async (req, res, next) => {
     // Fetch user and explicitly request password field since select: false
     const user = await User.findOne({ email: normalizedEmail }).select('+password');
     if (!user) {
-      console.log(`[AUTH] Login failed: User ${normalizedEmail} not found`);
+      console.log(`[AUTH] Login failed: User ${normalizedEmail} not found in database`);
       return next(new UnauthorizedError('Invalid email or password.'));
     }
 
@@ -106,8 +116,11 @@ const login = async (req, res, next) => {
       return next(new UnauthorizedError('Invalid email or password.'));
     }
 
-    // Check if account email is verified
-    if (!user.isVerified) {
+    // Check if account email verification is required and unverified
+    const requireVerification = process.env.REQUIRE_EMAIL_VERIFICATION === 'true' || 
+      (!!process.env.EMAIL_USER && process.env.EMAIL_USER !== 'your_smtp_user_name' && !process.env.EMAIL_USER.includes('your_'));
+
+    if (requireVerification && !user.isVerified) {
       console.log(`[AUTH] Login blocked: ${normalizedEmail} is not verified yet`);
       return next(
         new UnauthorizedError('Please verify your email address before logging in. Check your inbox for the verification link.')
