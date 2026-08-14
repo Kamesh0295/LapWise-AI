@@ -116,7 +116,7 @@ const login = async (req, res, next) => {
       return next(new UnauthorizedError('Invalid email or password.'));
     }
 
-    // Check if account email verification is required and unverified
+    // Check if account email verification is required
     const requireVerification = process.env.REQUIRE_EMAIL_VERIFICATION === 'true' || 
       (!!process.env.EMAIL_USER && process.env.EMAIL_USER !== 'your_smtp_user_name' && !process.env.EMAIL_USER.includes('your_'));
 
@@ -125,6 +125,13 @@ const login = async (req, res, next) => {
       return next(
         new UnauthorizedError('Please verify your email address before logging in. Check your inbox for the verification link.')
       );
+    }
+
+    // Auto-verify existing unverified accounts if SMTP verification is disabled/unconfigured
+    if (!user.isVerified && !requireVerification) {
+      user.isVerified = true;
+      await user.save();
+      console.log(`[AUTH] Auto-verified existing user: ${normalizedEmail}`);
     }
 
     // Sign JWT token

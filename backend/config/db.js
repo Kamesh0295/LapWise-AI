@@ -1,4 +1,15 @@
 const mongoose = require('mongoose');
+const dns = require('dns');
+
+// Fix querySrv ECONNREFUSED on Windows networks by using Google Public DNS servers
+try {
+  dns.setServers(['8.8.8.8', '8.8.4.4']);
+  if (dns.setDefaultResultOrder) {
+    dns.setDefaultResultOrder('ipv4first');
+  }
+} catch (dnsErr) {
+  // Ignore if environment overrides DNS configuration
+}
 
 const connectDB = async () => {
   try {
@@ -13,7 +24,9 @@ const connectDB = async () => {
     const maskedUri = mongoUri.replace(/:([^@]+)@/, ':****@');
     console.log(`Connecting to MongoDB at: ${maskedUri}`);
 
-    const conn = await mongoose.connect(mongoUri);
+    const conn = await mongoose.connect(mongoUri, {
+      serverSelectionTimeoutMS: 10000
+    });
 
     console.log(`✅ MongoDB Connected Successfully: ${conn.connection.host}`);
   } catch (error) {

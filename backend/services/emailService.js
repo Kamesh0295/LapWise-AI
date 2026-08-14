@@ -1,4 +1,4 @@
-const transporter = require('../config/mail');
+const { transporter, isMailConfigured } = require('../config/mail');
 
 /**
  * Send email verification link
@@ -6,6 +6,10 @@ const transporter = require('../config/mail');
  * @param {string} token - Verification token
  */
 const sendVerificationEmail = async (user, token) => {
+  if (!isMailConfigured || !transporter) {
+    console.log(`[EMAIL] Mail server unconfigured. Skipping verification email for ${user.email}`);
+    return;
+  }
   const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
   
   const htmlContent = `
@@ -35,6 +39,10 @@ const sendVerificationEmail = async (user, token) => {
  * @param {string} token - Password reset token
  */
 const sendPasswordResetEmail = async (user, token) => {
+  if (!isMailConfigured || !transporter) {
+    console.log(`[EMAIL] Mail server unconfigured. Skipping password reset email for ${user.email}`);
+    return;
+  }
   const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
 
   const htmlContent = `
@@ -67,6 +75,10 @@ const sendPasswordResetEmail = async (user, token) => {
  * @param {number} newPrice - New lowered price
  */
 const sendPriceDropEmail = async (user, laptop, oldPrice, newPrice) => {
+  if (!isMailConfigured || !transporter) {
+    console.log(`[EMAIL] Mail server unconfigured. Skipping price drop alert email for ${user.email}`);
+    return;
+  }
   const laptopUrl = `${process.env.FRONTEND_URL}/laptops/${laptop._id}`;
 
   const htmlContent = `
