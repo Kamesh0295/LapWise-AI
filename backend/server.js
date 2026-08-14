@@ -64,6 +64,15 @@ if (process.env.NODE_ENV === 'development') {
 app.use(express.json({ limit: '10kb' })); // Limit body sizes to 10kb to avoid DoS
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
+// Health check root route
+app.get('/', (req, res) => {
+  res.status(200).json({
+    status: 'success',
+    message: 'Laptop Recommendation System Backend API is running successfully!',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Mount Application API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/laptops', laptopRoutes);
