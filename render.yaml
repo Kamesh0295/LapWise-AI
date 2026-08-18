@@ -1,7 +1,7 @@
 services:
   # Backend Web Service
   - type: web
-    name: laptop-recommendation-backend
+    name: lapwise-backend
     env: node
     rootDir: backend
     buildCommand: npm install
@@ -19,24 +19,10 @@ services:
         sync: false
       - key: GEMINI_API_KEY
         sync: false
-      - key: REQUIRE_EMAIL_VERIFICATION
-        sync: false
-      - key: EMAIL_HOST
-        sync: false
-      - key: EMAIL_PORT
-        sync: false
-      - key: EMAIL_SECURE
-        sync: false
-      - key: EMAIL_USER
-        sync: false
-      - key: EMAIL_PASS
-        sync: false
-      - key: EMAIL_FROM
-        sync: false
 
   # Frontend Static Site
   - type: web
-    name: laptop-recommendation-frontend
+    name: lapwise-frontend
     env: static
     rootDir: frontend
     buildCommand: npm install && npm run build
