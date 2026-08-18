@@ -7,8 +7,8 @@ const { transporter, isMailConfigured } = require('../config/mail');
  */
 const sendVerificationEmail = async (user, token) => {
   if (!isMailConfigured || !transporter) {
-    console.log(`[EMAIL] Mail server unconfigured. Skipping verification email for ${user.email}`);
-    return;
+    console.log(`[EMAIL] Mail server unconfigured. Cannot send verification email for ${user.email}`);
+    throw new Error('SMTP email server is not configured. Please set EMAIL_USER and EMAIL_PASS environment variables.');
   }
   const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
   
@@ -40,8 +40,8 @@ const sendVerificationEmail = async (user, token) => {
  */
 const sendPasswordResetEmail = async (user, token) => {
   if (!isMailConfigured || !transporter) {
-    console.log(`[EMAIL] Mail server unconfigured. Skipping password reset email for ${user.email}`);
-    return;
+    console.log(`[EMAIL] Mail server unconfigured. Cannot send password reset email for ${user.email}`);
+    throw new Error('SMTP email server is not configured. Please set EMAIL_USER and EMAIL_PASS environment variables.');
   }
   const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
 

@@ -13,6 +13,18 @@ const signToken = (id) => {
   });
 };
 
+// Helper to check if email verification is explicitly enabled or configured
+const isVerificationRequired = () => {
+  if (process.env.REQUIRE_EMAIL_VERIFICATION === 'true') return true;
+  if (process.env.REQUIRE_EMAIL_VERIFICATION === 'false') return false;
+  return Boolean(
+    process.env.EMAIL_USER &&
+    process.env.EMAIL_PASS &&
+    !process.env.EMAIL_USER.includes('your_') &&
+    !process.env.EMAIL_PASS.includes('your_')
+  );
+};
+
 /**
  * Register a new user
  */
@@ -34,9 +46,7 @@ const register = async (req, res, next) => {
     const rawToken = generateRandomToken();
     const hashedVerificationToken = hashToken(rawToken);
 
-    // Automatically verify user if SMTP email service is not configured on Render
-    const requireVerification = process.env.REQUIRE_EMAIL_VERIFICATION === 'true' || 
-      (!!process.env.EMAIL_USER && process.env.EMAIL_USER !== 'your_smtp_user_name' && !process.env.EMAIL_USER.includes('your_'));
+    const requireVerification = isVerificationRequired();
 
     // Create user (password will be hashed ONCE by User Mongoose pre-save hook)
     const user = await User.create({
@@ -117,8 +127,7 @@ const login = async (req, res, next) => {
     }
 
     // Check if account email verification is required
-    const requireVerification = process.env.REQUIRE_EMAIL_VERIFICATION === 'true' || 
-      (!!process.env.EMAIL_USER && process.env.EMAIL_USER !== 'your_smtp_user_name' && !process.env.EMAIL_USER.includes('your_'));
+    const requireVerification = isVerificationRequired();
 
     if (requireVerification && !user.isVerified) {
       console.log(`[AUTH] Login blocked: ${normalizedEmail} is not verified yet`);
