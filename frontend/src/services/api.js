@@ -40,8 +40,16 @@ api.interceptors.response.use(
     }
     
     // Extract error message for easy toast/alert displaying
-    const errorMessage =
-      error.response?.data?.message || 'An unexpected error occurred. Please try again.';
+    let errorMessage = error.response?.data?.message;
+    if (!errorMessage) {
+      if (!error.response) {
+        errorMessage = 'Unable to connect to backend server. Please check your internet connection or backend server status on Render.';
+      } else if (error.response.status === 500) {
+        errorMessage = 'Internal server error (500). Please check backend database logs on Render.';
+      } else {
+        errorMessage = 'An unexpected error occurred. Please try again.';
+      }
+    }
     
     const customError = new Error(errorMessage);
     customError.status = error.response?.status;
