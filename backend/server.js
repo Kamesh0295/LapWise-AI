@@ -45,11 +45,15 @@ connectDB().then(() => {
 });
 
 // Setup security HTTP headers
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
 
-// Setup Cross-Origin Resource Sharing (CORS)
+// Setup Cross-Origin Resource Sharing (CORS) - Allow dynamic origin matching with credentials
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || '*',
+  origin: (origin, callback) => {
+    callback(null, true);
+  },
   credentials: true
 }));
 
