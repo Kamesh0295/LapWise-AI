@@ -22,11 +22,11 @@ const Register = () => {
 
     try {
       const response = await register({ name, email, password });
-      setSuccessMsg(response?.message || 'Registration successful! Please check your email to verify your account.');
-      // Auto-redirect to login after 4 seconds
+      setSuccessMsg(response?.message || 'Registration successful! You can now log in directly.');
+      // Auto-redirect to login after 2 seconds
       setTimeout(() => {
         navigate('/login');
-      }, 4000);
+      }, 2000);
     } catch (err) {
       setErrorMsg(err.message || 'Registration failed. Try using another email.');
     } finally {
