@@ -35,6 +35,7 @@ const Navbar = () => {
 
   const notifRef = useRef(null);
   const profileRef = useRef(null);
+  const mobileMenuRef = useRef(null);
 
   // Sync theme to document element
   useEffect(() => {
@@ -56,7 +57,7 @@ const Navbar = () => {
     }
   }, [isAuthenticated]);
 
-  // Close dropdowns when clicking outside
+  // Close dropdowns and mobile menu when clicking outside or pressing Escape
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (notifRef.current && !notifRef.current.contains(event.target)) {
@@ -65,10 +66,31 @@ const Navbar = () => {
       if (profileRef.current && !profileRef.current.contains(event.target)) {
         setProfileDropdownOpen(false);
       }
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target) && !event.target.closest('#mobile-menu-trigger')) {
+        setMobileMenuOpen(false);
+      }
     };
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setNotificationsOpen(false);
+        setProfileDropdownOpen(false);
+        setMobileMenuOpen(false);
+      }
+    };
+
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, []);
+
+  // Close mobile drawer on route change
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
 
   const toggleTheme = () => {
     setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
@@ -98,14 +120,14 @@ const Navbar = () => {
   const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
-    <nav className="fixed inset-x-0 top-0 z-50 h-16 border-b border-gray-200/50 dark:border-gray-800/40 bg-white/70 dark:bg-darkBg/60 backdrop-blur-md transition-all duration-300">
+    <nav className="fixed inset-x-0 top-0 z-50 h-16 border-b border-gray-200/50 dark:border-gray-800/40 bg-white/80 dark:bg-darkBg/80 backdrop-blur-md transition-all duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
         
         {/* Brand Logo */}
-        <Link to="/" className="flex items-center gap-2">
-          <img src="https://img.icons8.com/fluency/48/laptop.png" alt="Laptop Rec Logo" className="w-8 h-8" />
+        <Link to="/" className="flex items-center gap-2" aria-label="LapWise AI Home">
+          <img src="https://img.icons8.com/fluency/48/laptop.png" alt="LapWise Logo" className="w-8 h-8 object-contain" />
           <span className="font-outfit text-2xl font-black bg-gradient-to-r from-primary-500 to-indigo-500 bg-clip-text text-transparent">
-            TechMatch
+            LapWise AI
           </span>
         </Link>
 
@@ -129,6 +151,7 @@ const Navbar = () => {
             onClick={toggleTheme}
             className="p-2 text-gray-500 hover:text-primary-500 dark:text-gray-400 dark:hover:text-primary-400 transition-colors"
             title="Toggle theme"
+            aria-label="Toggle theme mode"
           >
             {theme === 'dark' ? <MdLightMode size={22} /> : <MdDarkMode size={22} />}
           </button>
@@ -136,7 +159,7 @@ const Navbar = () => {
           {/* Comparison & Wishlist Badges (Authenticated users only) */}
           {isAuthenticated && (
             <>
-              <Link to="/compare" className="relative p-2 text-gray-500 hover:text-primary-500 dark:text-gray-400 dark:hover:text-primary-400" title="Compare list">
+              <Link to="/compare" className="relative p-2 text-gray-500 hover:text-primary-500 dark:text-gray-400 dark:hover:text-primary-400" title="Compare list" aria-label="View Compare list">
                 <MdCompareArrows size={24} />
                 {compareList.length > 0 && (
                   <span className="absolute top-0.5 right-0.5 w-5 h-5 flex items-center justify-center bg-blue-500 text-white font-bold text-[10px] rounded-full border border-white dark:border-darkBg animate-pulse">
@@ -145,7 +168,7 @@ const Navbar = () => {
                 )}
               </Link>
 
-              <Link to="/wishlist" className="relative p-2 text-gray-500 hover:text-primary-500 dark:text-gray-400 dark:hover:text-primary-400" title="My Wishlist">
+              <Link to="/wishlist" className="relative p-2 text-gray-500 hover:text-primary-500 dark:text-gray-400 dark:hover:text-primary-400" title="My Wishlist" aria-label="View Wishlist">
                 <MdFavoriteBorder size={23} />
                 {wishlist.length > 0 && (
                   <span className="absolute top-0.5 right-0.5 w-5 h-5 flex items-center justify-center bg-red-500 text-white font-bold text-[10px] rounded-full border border-white dark:border-darkBg">
@@ -163,6 +186,7 @@ const Navbar = () => {
                 onClick={() => setNotificationsOpen(!notificationsOpen)}
                 className="relative p-2 text-gray-500 hover:text-primary-500 dark:text-gray-400 dark:hover:text-primary-400"
                 title="Notifications"
+                aria-label="Notifications menu"
               >
                 <MdNotifications size={24} />
                 {unreadCount > 0 && (
@@ -187,7 +211,7 @@ const Navbar = () => {
                           <div className="flex justify-between items-start gap-2">
                             <span className="font-semibold">{item.title}</span>
                             {!item.read && (
-                              <button onClick={(e) => handleMarkAsRead(item._id, e)} className="text-primary-500 hover:text-primary-700" title="Mark as read">
+                              <button onClick={(e) => handleMarkAsRead(item._id, e)} className="text-primary-500 hover:text-primary-700" title="Mark as read" aria-label="Mark notification as read">
                                 <MdCheckCircle size={15} />
                               </button>
                             )}
@@ -259,17 +283,21 @@ const Navbar = () => {
 
         </div>
 
-        {/* Mobile menu trigger */}
-        <div className="flex items-center gap-3 md:hidden">
+        {/* Mobile menu trigger button */}
+        <div className="flex items-center gap-2 md:hidden">
           <button 
             onClick={toggleTheme}
-            className="p-1 text-gray-500 dark:text-gray-400"
+            className="p-2 text-gray-500 dark:text-gray-400 hover:text-primary-500"
+            aria-label="Toggle dark/light theme mode"
           >
             {theme === 'dark' ? <MdLightMode size={20} /> : <MdDarkMode size={20} />}
           </button>
+
           <button 
+            id="mobile-menu-trigger"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-1 text-gray-500 dark:text-gray-400"
+            className="p-2 text-gray-700 dark:text-gray-200 hover:text-primary-500 focus:outline-none"
+            aria-label={mobileMenuOpen ? 'Close mobile menu' : 'Open mobile menu'}
           >
             {mobileMenuOpen ? <MdClose size={26} /> : <MdMenu size={26} />}
           </button>
@@ -277,34 +305,109 @@ const Navbar = () => {
 
       </div>
 
-      {/* Mobile Drawer Menu */}
+      {/* Mobile Backdrop & Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden absolute top-16 inset-x-0 bg-white dark:bg-darkCard border-b border-gray-200 dark:border-darkBorder shadow-lg px-4 py-4 flex flex-col gap-4 animate-fade-in z-50">
-          <Link to="/" onClick={() => setMobileMenuOpen(false)} className="py-2 text-sm font-semibold">Home</Link>
-          {isAuthenticated ? (
-            <>
-              <Link to="/wizard" onClick={() => setMobileMenuOpen(false)} className="py-2 text-sm font-semibold">Choose Help</Link>
-              <Link to="/search" onClick={() => setMobileMenuOpen(false)} className="py-2 text-sm font-semibold">Browse Catalog</Link>
-              <Link to="/compare" onClick={() => setMobileMenuOpen(false)} className="py-2 text-sm font-semibold">Compare List ({compareList.length})</Link>
-              <Link to="/wishlist" onClick={() => setMobileMenuOpen(false)} className="py-2 text-sm font-semibold">My Wishlist ({wishlist.length})</Link>
-              <div className="flex items-center gap-3 pb-3 border-b border-gray-100 dark:border-gray-800">
-                <UserAvatar user={user} size="w-9 h-9" />
-                <div className="overflow-hidden">
-                  <p className="text-sm font-semibold truncate">{user?.name}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user?.email}</p>
+        <>
+          {/* Backdrop overlay */}
+          <div 
+            onClick={() => setMobileMenuOpen(false)} 
+            className="md:hidden fixed inset-0 top-16 bg-black/50 backdrop-blur-xs z-40" 
+          />
+
+          <div 
+            ref={mobileMenuRef}
+            className="md:hidden fixed top-16 inset-x-0 bg-white dark:bg-darkCard border-b border-gray-200 dark:border-darkBorder shadow-2xl px-6 py-6 flex flex-col gap-3 z-50 max-h-[calc(100vh-4rem)] overflow-y-auto animate-fade-in"
+          >
+            <Link 
+              to="/" 
+              onClick={() => setMobileMenuOpen(false)} 
+              className="py-3 px-3 min-h-[44px] flex items-center text-sm font-semibold text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl"
+            >
+              Home
+            </Link>
+
+            {isAuthenticated ? (
+              <>
+                <Link 
+                  to="/wizard" 
+                  onClick={() => setMobileMenuOpen(false)} 
+                  className="py-3 px-3 min-h-[44px] flex items-center text-sm font-semibold text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl"
+                >
+                  Choose Help
+                </Link>
+                <Link 
+                  to="/search" 
+                  onClick={() => setMobileMenuOpen(false)} 
+                  className="py-3 px-3 min-h-[44px] flex items-center text-sm font-semibold text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl"
+                >
+                  Browse Catalog
+                </Link>
+                <Link 
+                  to="/compare" 
+                  onClick={() => setMobileMenuOpen(false)} 
+                  className="py-3 px-3 min-h-[44px] flex items-center justify-between text-sm font-semibold text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl"
+                >
+                  <span>Compare List</span>
+                  {compareList.length > 0 && <span className="px-2 py-0.5 bg-blue-500 text-white text-xs font-bold rounded-full">{compareList.length}</span>}
+                </Link>
+                <Link 
+                  to="/wishlist" 
+                  onClick={() => setMobileMenuOpen(false)} 
+                  className="py-3 px-3 min-h-[44px] flex items-center justify-between text-sm font-semibold text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl"
+                >
+                  <span>My Wishlist</span>
+                  {wishlist.length > 0 && <span className="px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded-full">{wishlist.length}</span>}
+                </Link>
+
+                <div className="pt-3 border-t border-gray-100 dark:border-gray-800 space-y-2">
+                  <div className="flex items-center gap-3 px-3 py-2">
+                    <UserAvatar user={user} size="w-10 h-10" />
+                    <div className="overflow-hidden">
+                      <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{user?.name}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user?.email}</p>
+                    </div>
+                  </div>
+
+                  <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)} className="py-3 px-3 min-h-[44px] flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl">
+                    Dashboard
+                  </Link>
+                  {isAdmin && (
+                    <Link to="/admin" onClick={() => setMobileMenuOpen(false)} className="py-3 px-3 min-h-[44px] flex items-center text-sm font-semibold text-primary-500 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl">
+                      Admin Console
+                    </Link>
+                  )}
+                  <Link to="/profile" onClick={() => setMobileMenuOpen(false)} className="py-3 px-3 min-h-[44px] flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl">
+                    Account Settings
+                  </Link>
+
+                  <button 
+                    onClick={handleSignOut} 
+                    className="w-full py-3 px-3 min-h-[44px] flex items-center text-sm font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-xl text-left"
+                  >
+                    Sign Out
+                  </button>
                 </div>
+              </>
+            ) : (
+              <div className="flex flex-col gap-3 pt-3 border-t border-gray-100 dark:border-gray-800">
+                <Link 
+                  to="/login" 
+                  onClick={() => setMobileMenuOpen(false)} 
+                  className="py-3 min-h-[44px] flex items-center justify-center text-sm font-semibold border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-xl"
+                >
+                  Sign In
+                </Link>
+                <Link 
+                  to="/register" 
+                  onClick={() => setMobileMenuOpen(false)} 
+                  className="py-3 min-h-[44px] flex items-center justify-center text-sm font-semibold text-white bg-primary-500 hover:bg-primary-600 rounded-xl shadow-md"
+                >
+                  Register
+                </Link>
               </div>
-              <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)} className="py-2 text-sm font-semibold">Dashboard</Link>
-              {isAdmin && <Link to="/admin" onClick={() => setMobileMenuOpen(false)} className="py-2 text-sm font-semibold text-primary-500">Admin Console</Link>}
-              <button onClick={handleSignOut} className="py-2 text-sm font-bold text-red-500 text-left">Sign Out</button>
-            </>
-          ) : (
-            <div className="flex flex-col gap-2 pt-2 border-t border-gray-100 dark:border-gray-800">
-              <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="py-2 text-center text-sm font-semibold border border-gray-200 dark:border-gray-800 rounded-lg">Sign In</Link>
-              <Link to="/register" onClick={() => setMobileMenuOpen(false)} className="py-2 text-center text-sm font-semibold text-white bg-primary-500 rounded-lg">Register</Link>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        </>
       )}
     </nav>
   );

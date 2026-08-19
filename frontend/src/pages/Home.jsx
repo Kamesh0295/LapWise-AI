@@ -94,17 +94,17 @@ const Home = () => {
             Eliminate choice fatigue. Answer a few questions about your budget and work requirements to match with our database, or ask our integrated Gemini AI assistant directly.
           </p>
 
-          <div className="mt-10 flex flex-wrap justify-center gap-4">
+          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto sm:max-w-none">
             <Link 
               to="/wizard" 
-              className="px-8 py-3.5 text-sm font-semibold text-white bg-gradient-to-r from-primary-500 to-indigo-500 hover:from-primary-600 hover:to-indigo-600 rounded-xl shadow-lg hover:shadow-primary-500/25 transition-all hover:scale-105 flex items-center gap-2"
+              className="w-full sm:w-auto px-8 py-3.5 text-sm font-semibold text-white bg-gradient-to-r from-primary-500 to-indigo-500 hover:from-primary-600 hover:to-indigo-600 rounded-xl shadow-lg hover:shadow-primary-500/25 transition-all hover:scale-105 flex items-center justify-center gap-2"
             >
               <span>Find My Laptop</span>
               <MdArrowForward size={16} />
             </Link>
             <Link 
               to="/search" 
-              className="px-8 py-3.5 text-sm font-semibold text-gray-700 dark:text-gray-200 bg-white dark:bg-darkCard hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-200 dark:border-darkBorder rounded-xl shadow-sm transition-all"
+              className="w-full sm:w-auto px-8 py-3.5 text-sm font-semibold text-gray-700 dark:text-gray-200 bg-white dark:bg-darkCard hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-200 dark:border-darkBorder rounded-xl shadow-sm transition-all text-center"
             >
               Explore Laptops
             </Link>

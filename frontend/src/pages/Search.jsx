@@ -129,6 +129,7 @@ const Search = () => {
   const { isInCompareList, addToCompare, removeFromCompare } = useCompare();
 
   // Search input state
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [searchInput, setSearchInput] = useState(searchParams.get('search') || '');
   const [autocompleteSuggestions, setAutocompleteSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -474,14 +475,45 @@ const Search = () => {
         </div>
       </div>
 
+      {/* Mobile Filter Trigger Button */}
+      <div className="lg:hidden">
+        <button
+          onClick={() => setMobileFilterOpen(!mobileFilterOpen)}
+          className="w-full py-3 px-4 bg-primary-500 hover:bg-primary-600 text-white font-bold text-xs rounded-xl shadow-md flex items-center justify-center gap-2 transition-all active:scale-98"
+        >
+          <SlidersHorizontal className="w-4 h-4" />
+          <span>Filters & Specification Refine</span>
+        </button>
+      </div>
+
       {/* 2. Main content area: Filter Sidebar + Catalog grid */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         
+        {/* Mobile Filter Drawer Overlay */}
+        {mobileFilterOpen && (
+          <div 
+            onClick={() => setMobileFilterOpen(false)}
+            className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-xs z-40"
+          />
+        )}
+
         {/* Left Side: Advanced Specification Filters */}
-        <aside className="space-y-6 lg:border-r border-gray-200/50 dark:border-gray-800/40 lg:pr-6 h-fit bg-gray-50/50 dark:bg-darkCard/20 p-4 lg:p-0 rounded-2xl">
-          <div className="flex items-center gap-2 border-b border-gray-100 dark:border-gray-800 pb-3">
-            <SlidersHorizontal className="text-primary-500 w-4.5 h-4.5" />
-            <h3 className="font-outfit font-bold text-sm">Specification Filters</h3>
+        <aside className={`space-y-6 lg:border-r border-gray-200/50 dark:border-gray-800/40 lg:pr-6 h-fit bg-gray-50/50 dark:bg-darkCard/20 p-4 lg:p-0 rounded-2xl ${
+          mobileFilterOpen 
+            ? 'fixed inset-x-4 bottom-4 z-50 bg-white dark:bg-darkCard max-h-[85vh] overflow-y-auto shadow-2xl p-6 border border-gray-200 dark:border-gray-800' 
+            : 'hidden lg:block'
+        }`}>
+          <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-3">
+            <div className="flex items-center gap-2">
+              <SlidersHorizontal className="text-primary-500 w-4.5 h-4.5" />
+              <h3 className="font-outfit font-bold text-sm">Specification Filters</h3>
+            </div>
+            <button 
+              onClick={() => setMobileFilterOpen(false)}
+              className="lg:hidden text-gray-400 hover:text-gray-600 dark:hover:text-white p-1 text-xs font-bold"
+            >
+              ✕ Close
+            </button>
           </div>
 
           <div className="space-y-4">
@@ -922,7 +954,7 @@ const Search = () => {
                   </div>
                 </div>
               )}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                 {displayedLaptops.map(laptop => (
                   <div 
                     key={laptop._id}
