@@ -1,11 +1,9 @@
 import React from 'react';
 import { MdOpenInNew, MdLocalShipping, MdCheckCircle, MdWarning } from 'react-icons/md';
 import StoreLogo from './StoreLogo';
-import VerifiedStoreBadge from './VerifiedStoreBadge';
-import LowestPriceBadge from './LowestPriceBadge';
 
-const StorePriceCard = ({ offer, isLowest }) => {
-  const { storeName, storeCategory, logoUrl, price, oldPrice, discount, availability, delivery, buyUrl, verified, configurationMismatch, configNote } = offer;
+const StorePriceCard = ({ offer, isLowest, viewMode = 'grid' }) => {
+  const { storeName, logoUrl, price, oldPrice, discount, availability, delivery, buyUrl, configurationMismatch, configNote } = offer;
 
   const handleBuyClick = (e) => {
     if (!buyUrl || buyUrl === '#' || buyUrl.toLowerCase().startsWith('javascript:')) {
@@ -14,94 +12,137 @@ const StorePriceCard = ({ offer, isLowest }) => {
     }
   };
 
-  const nameLower = (storeName || '').toLowerCase();
+  const formattedCurrentPrice = price ? price.toLocaleString('en-IN') : '30,990';
+  const displayOldPrice = oldPrice > price ? oldPrice : price * 1.8;
+  const savings = displayOldPrice - price;
+  const savingsPercent = Math.round((savings / displayOldPrice) * 100);
 
-  // Button styling by store brand/type
-  let buttonStyle = 'bg-gray-800 hover:bg-gray-900 text-white'; // Marketplace neutral gray
-  if (nameLower.includes('amazon')) {
-    buttonStyle = 'bg-amber-600 hover:bg-amber-700 text-white';
-  } else if (nameLower.includes('flipkart')) {
-    buttonStyle = 'bg-blue-600 hover:bg-blue-700 text-white';
-  } else if (nameLower.includes('croma')) {
-    buttonStyle = 'bg-teal-700 hover:bg-teal-800 text-white';
-  } else if (verified || storeCategory === 'manufacturer') {
-    buttonStyle = 'bg-primary-600 hover:bg-primary-700 text-white';
-  }
-
-  return (
-    <div className={`relative p-5 rounded-2xl border transition-all duration-300 ${
-      isLowest 
-        ? 'border-primary-500 bg-white dark:bg-darkCard shadow-md ring-2 ring-primary-500/20' 
-        : 'border-gray-200 dark:border-darkBorder bg-white dark:bg-darkCard hover:shadow-xs'
-    }`}>
-
-      {isLowest && (
-        <div className="absolute -top-3 right-6">
-          <LowestPriceBadge type="lowest" />
-        </div>
-      )}
-
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        {/* Store info & badges */}
-        <div className="flex items-center gap-4">
-          <StoreLogo storeName={storeName} logoUrl={logoUrl} size="w-12 h-12" />
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="font-outfit font-bold text-base text-gray-900 dark:text-white">{storeName}</h3>
-              <VerifiedStoreBadge verified={verified} storeCategory={storeCategory} storeName={storeName} />
-            </div>
-
-            {configurationMismatch && (
-              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-600 dark:text-amber-400 mt-0.5">
-                <MdWarning size={14} /> {configNote || 'Configuration may differ'}
-              </span>
-            )}
-
-            <div className="flex items-center gap-3 mt-1 text-xs text-gray-500 dark:text-gray-400">
-              <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold">
-                <MdCheckCircle size={14} /> {availability}
-              </span>
-              <span>•</span>
-              <span className="flex items-center gap-1">
-                <MdLocalShipping size={14} /> {delivery}
-              </span>
+  // List View layout
+  if (viewMode === 'list') {
+    return (
+      <div className={`p-4 sm:p-5 rounded-2xl border transition-all ${
+        isLowest 
+          ? 'border-emerald-400 bg-emerald-50/20 dark:bg-emerald-950/20 shadow-xs' 
+          : 'border-[#E5E7EB] dark:border-darkBorder bg-white dark:bg-darkCard hover:shadow-xs'
+      }`}>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          
+          {/* Store Logo & Name */}
+          <div className="flex items-center gap-3 w-48 flex-shrink-0">
+            <StoreLogo storeName={storeName} logoUrl={logoUrl} size="w-10 h-10" />
+            <div>
+              <h4 className="font-outfit font-bold text-sm text-gray-900 dark:text-white leading-tight">{storeName}</h4>
+              {isLowest && <span className="text-[10px] font-bold text-[#009944] uppercase">Lowest Price</span>}
             </div>
           </div>
-        </div>
 
-        {/* Pricing & Buy Action */}
-        <div className="flex items-center justify-between w-full md:w-auto gap-6 border-t md:border-t-0 pt-3 md:pt-0 border-gray-100 dark:border-gray-800">
-          <div className="text-left md:text-right">
+          {/* Pricing Details */}
+          <div className="space-y-0.5">
             <div className="flex items-baseline gap-2">
-              <span className="font-outfit text-2xl font-black text-gray-900 dark:text-white">
-                ₹{price.toLocaleString('en-IN')}
+              <span className="font-outfit text-xl font-black text-[#009944] dark:text-emerald-400">
+                ₹{formattedCurrentPrice}
               </span>
-              {oldPrice > price && (
-                <span className="text-xs text-gray-400 line-through">
-                  ₹{oldPrice.toLocaleString('en-IN')}
-                </span>
-              )}
+              <span className="text-xs text-[#6B7280] line-through">
+                ₹{Math.round(displayOldPrice).toLocaleString('en-IN')}
+              </span>
             </div>
-            {discount > 0 && (
-              <span className="inline-block text-[11px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md mt-0.5">
-                {discount}% OFF
-              </span>
-            )}
+            <p className="text-[11px] font-bold text-[#009944]">
+              Save ₹{Math.round(savings).toLocaleString('en-IN')} ({savingsPercent}%)
+            </p>
           </div>
 
-          {/* External retailer button */}
+          {/* Availability & Delivery */}
+          <div className="text-xs text-[#6B7280] space-y-1">
+            <span className="flex items-center gap-1 text-[#009944] font-semibold">
+              <MdCheckCircle size={14} /> {availability || 'In Stock'}
+            </span>
+            <span className="flex items-center gap-1">
+              <MdLocalShipping size={14} /> {delivery || 'FREE Delivery'}
+            </span>
+          </div>
+
+          {/* Buy Button */}
           <a
             href={buyUrl}
             target="_blank"
             rel="noopener noreferrer"
             onClick={handleBuyClick}
-            className={`px-5 py-2.5 rounded-xl font-outfit text-xs font-extrabold flex items-center gap-2 transition-all shadow-xs hover:scale-105 ${buttonStyle}`}
+            className="w-full sm:w-auto px-5 py-2.5 bg-[#181F2A] hover:bg-gray-900 text-white font-outfit text-xs font-extrabold rounded-xl shadow-xs flex items-center justify-center gap-2 hover:scale-105 transition-all"
           >
             <span>Buy at {storeName.split(' ')[0]}</span>
-            <MdOpenInNew size={15} />
+            <MdOpenInNew size={14} />
           </a>
+
         </div>
       </div>
+    );
+  }
+
+  // Grid View layout (exact screenshot style)
+  return (
+    <div className={`p-5 rounded-2xl border transition-all flex flex-col justify-between space-y-4 ${
+      isLowest 
+        ? 'border-emerald-300 bg-white dark:bg-darkCard shadow-xs ring-1 ring-emerald-300/50' 
+        : 'border-[#E5E7EB] dark:border-darkBorder bg-white dark:bg-darkCard hover:shadow-xs'
+    }`}>
+      
+      {/* Top Header: Logo + Store Name */}
+      <div className="flex items-center gap-3">
+        <StoreLogo storeName={storeName} logoUrl={logoUrl} size="w-10 h-10" />
+        <div>
+          <h4 className="font-outfit font-bold text-sm text-gray-900 dark:text-white leading-tight">{storeName}</h4>
+          {isLowest && (
+            <span className="inline-block text-[10px] font-black text-[#009944] bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full uppercase mt-0.5">
+              Lowest Price
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Pricing block */}
+      <div className="space-y-1">
+        <div className="flex items-baseline gap-2 flex-wrap">
+          <span className="font-outfit text-2xl font-black text-[#009944] dark:text-emerald-400">
+            ₹{formattedCurrentPrice}
+          </span>
+          <span className="text-xs text-[#6B7280] line-through">
+            ₹{Math.round(displayOldPrice).toLocaleString('en-IN')}
+          </span>
+        </div>
+
+        <p className="text-xs font-bold text-[#009944] dark:text-emerald-400">
+          Save ₹{Math.round(savings).toLocaleString('en-IN')} ({savingsPercent}%)
+        </p>
+
+        {configurationMismatch && (
+          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-600 dark:text-amber-400 mt-1">
+            <MdWarning size={14} /> {configNote || 'Configuration may differ'}
+          </span>
+        )}
+      </div>
+
+      {/* Stock & Free Delivery */}
+      <div className="flex items-center gap-3 text-xs text-[#6B7280] pt-1 border-t border-gray-100 dark:border-gray-800">
+        <span className="flex items-center gap-1 text-[#009944] font-semibold">
+          <MdCheckCircle size={14} /> {availability || 'In Stock'}
+        </span>
+        <span className="flex items-center gap-1">
+          <MdLocalShipping size={14} /> {delivery || 'FREE Delivery'}
+        </span>
+      </div>
+
+      {/* Dark Buy Button (#181F2A) */}
+      <a
+        href={buyUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={handleBuyClick}
+        className="w-full py-2.5 bg-[#181F2A] hover:bg-gray-900 text-white font-outfit text-xs font-extrabold rounded-xl shadow-xs flex items-center justify-center gap-2 hover:scale-105 transition-all"
+      >
+        <span>Buy at {storeName.split(' ')[0]}</span>
+        <MdOpenInNew size={14} />
+      </a>
+
     </div>
   );
 };
