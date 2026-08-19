@@ -32,32 +32,32 @@ const Compare = () => {
   }
 
   // 1. Calculate the best specs to highlight them in the comparison table
-  const prices = compareList.map(item => item.price);
-  const minPrice = Math.min(...prices);
+  const prices = compareList.map(item => item?.price || 0);
+  const minPrice = Math.min(...prices.filter(p => p > 0)) || 0;
 
-  const ramValues = compareList.map(item => item.ram);
-  const maxRam = Math.max(...ramValues);
+  const ramValues = compareList.map(item => item?.ram || 0);
+  const maxRam = Math.max(...ramValues) || 0;
 
-  const weights = compareList.map(item => item.weight);
-  const minWeight = Math.min(...weights);
+  const weights = compareList.map(item => item?.weight || 0);
+  const minWeight = Math.min(...weights.filter(w => w > 0)) || 0;
 
-  const cpuScores = compareList.map(item => item.specScores?.cpu || 0);
-  const maxCpu = Math.max(...cpuScores);
+  const cpuScores = compareList.map(item => item?.specScores?.cpu || 0);
+  const maxCpu = Math.max(...cpuScores) || 0;
 
-  const gpuScores = compareList.map(item => item.specScores?.gpu || 0);
-  const maxGpu = Math.max(...gpuScores);
+  const gpuScores = compareList.map(item => item?.specScores?.gpu || 0);
+  const maxGpu = Math.max(...gpuScores) || 0;
 
-  const batteryScores = compareList.map(item => item.specScores?.battery || 0);
-  const maxBattery = Math.max(...batteryScores);
+  const batteryScores = compareList.map(item => item?.specScores?.battery || 0);
+  const maxBattery = Math.max(...batteryScores) || 0;
 
-  const brightnessValues = compareList.map(item => item.brightness || 300);
-  const maxBrightness = Math.max(...brightnessValues);
+  const brightnessValues = compareList.map(item => item?.brightness || 300);
+  const maxBrightness = Math.max(...brightnessValues) || 300;
 
-  const refreshRateValues = compareList.map(item => item.refreshRate || 60);
-  const maxRefreshRate = Math.max(...refreshRateValues);
+  const refreshRateValues = compareList.map(item => item?.refreshRate || 60);
+  const maxRefreshRate = Math.max(...refreshRateValues) || 60;
 
-  const ratingValues = compareList.map(item => item.rating || 0);
-  const maxRating = Math.max(...ratingValues);
+  const ratingValues = compareList.map(item => item?.rating || 0);
+  const maxRating = Math.max(...ratingValues) || 0;
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8 space-y-8">
