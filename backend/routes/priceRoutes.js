@@ -8,6 +8,7 @@ router.get('/prices/search', (req, res) => res.status(405).json({ message: 'Use 
 router.post('/prices/search', priceController.searchLaptopPrices);
 
 router.get('/prices/:laptopId', priceController.getLaptopPrices);
+router.post('/prices/:laptopId/refresh', priceController.refreshLaptopPrices);
 router.get('/prices/:laptopId/history', priceController.getPriceHistory);
 router.get('/prices/:laptopId/lowest', priceController.getLowestPrice);
 

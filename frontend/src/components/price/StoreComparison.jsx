@@ -1,35 +1,44 @@
 import React, { useState } from 'react';
-import { MdFilterList, MdVerified, MdViewList, MdViewModule } from 'react-icons/md';
+import { MdFilterList, MdVerified, MdViewList, MdViewModule, MdShield, MdStorefront, MdInfoOutline } from 'react-icons/md';
 import StorePriceCard from './StorePriceCard';
 import StoreLogo from './StoreLogo';
 import VerifiedStoreBadge from './VerifiedStoreBadge';
 
-const StoreComparison = ({ storeLinks = [], lowestPrice = 0 }) => {
+const StoreComparison = ({ storeLinks = [], lowestPrice = 0, summary }) => {
   const [viewMode, setViewMode] = useState('cards'); // 'cards' | 'table'
   const [sortBy, setSortBy] = useState('price_asc');
   const [verifiedOnly, setVerifiedOnly] = useState(false);
 
-  let processed = [...storeLinks];
+  // Group into 3 categories using backend helper or client logic
+  const retailers = storeLinks.filter(s => s.verified && s.storeCategory === 'retailer' && !s.configurationMismatch);
+  const manufacturers = storeLinks.filter(s => s.verified && s.storeCategory === 'manufacturer' && !s.configurationMismatch);
+  const marketplace = storeLinks.filter(s => !s.verified || s.storeCategory === 'marketplace' || s.configurationMismatch);
 
-  if (verifiedOnly) {
-    processed = processed.filter(s => s.verified);
-  }
+  const applySort = (list) => {
+    const sorted = [...list];
+    sorted.sort((a, b) => {
+      if (sortBy === 'price_asc') return a.price - b.price;
+      if (sortBy === 'price_desc') return b.price - a.price;
+      if (sortBy === 'verified') return (b.verified ? 1 : 0) - (a.verified ? 1 : 0);
+      return 0;
+    });
+    return sorted;
+  };
 
-  processed.sort((a, b) => {
-    if (sortBy === 'price_asc') return a.price - b.price;
-    if (sortBy === 'price_desc') return b.price - a.price;
-    if (sortBy === 'verified') return (b.verified ? 1 : 0) - (a.verified ? 1 : 0);
-    return 0;
-  });
+  const sortedRetailers = applySort(retailers);
+  const sortedManufacturers = applySort(manufacturers);
+  const sortedMarketplace = applySort(marketplace);
+
+  const hasVerifiedOffers = sortedRetailers.length > 0 || sortedManufacturers.length > 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       
-      {/* Header & View Controls */}
+      {/* Header & Filter Controls */}
       <div className="flex items-center justify-between flex-wrap gap-4 border-b border-gray-200 dark:border-gray-800 pb-4">
         <div>
-          <h2 className="font-outfit text-xl font-bold">Live Retailer Price Comparison</h2>
-          <p className="text-xs text-gray-400 mt-0.5">Real-time offers across verified retailer platforms and authorized seller networks.</p>
+          <h2 className="font-outfit text-xl font-bold">Live Retailer & Store Comparison</h2>
+          <p className="text-xs text-gray-400 mt-0.5">Categorized by verified retailers, official manufacturer stores, and marketplace sellers.</p>
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
@@ -39,7 +48,7 @@ const StoreComparison = ({ storeLinks = [], lowestPrice = 0 }) => {
               type="checkbox" 
               checked={verifiedOnly} 
               onChange={(e) => setVerifiedOnly(e.target.checked)}
-              className="rounded text-emerald-500 focus:ring-emerald-500" 
+              className="rounded text-blue-600 focus:ring-blue-500" 
             />
             <MdVerified className="text-emerald-500" />
             <span>Verified Stores Only</span>
@@ -51,7 +60,7 @@ const StoreComparison = ({ storeLinks = [], lowestPrice = 0 }) => {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="px-3 py-1.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="px-3 py-1.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="price_asc">Lowest Price First</option>
               <option value="price_desc">Highest Price First</option>
@@ -64,7 +73,7 @@ const StoreComparison = ({ storeLinks = [], lowestPrice = 0 }) => {
             <button
               onClick={() => setViewMode('cards')}
               className={`p-1.5 rounded-lg text-xs font-bold transition-all ${
-                viewMode === 'cards' ? 'bg-white dark:bg-darkCard text-primary-600 shadow-xs' : 'text-gray-400'
+                viewMode === 'cards' ? 'bg-white dark:bg-darkCard text-blue-600 shadow-xs' : 'text-gray-400'
               }`}
               title="Card View"
             >
@@ -73,7 +82,7 @@ const StoreComparison = ({ storeLinks = [], lowestPrice = 0 }) => {
             <button
               onClick={() => setViewMode('table')}
               className={`p-1.5 rounded-lg text-xs font-bold transition-all ${
-                viewMode === 'table' ? 'bg-white dark:bg-darkCard text-primary-600 shadow-xs' : 'text-gray-400'
+                viewMode === 'table' ? 'bg-white dark:bg-darkCard text-blue-600 shadow-xs' : 'text-gray-400'
               }`}
               title="Table View"
             >
@@ -83,70 +92,70 @@ const StoreComparison = ({ storeLinks = [], lowestPrice = 0 }) => {
         </div>
       </div>
 
-      {/* Content Rendering */}
-      {processed.length === 0 ? (
-        <div className="p-8 text-center bg-white dark:bg-darkCard rounded-3xl border border-gray-200 dark:border-darkBorder">
-          <p className="text-xs text-gray-400">No store offers match your selected filter criteria.</p>
+      {/* SECTION 1: VERIFIED RETAILERS */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <MdVerified className="text-emerald-500" size={20} />
+          <h3 className="font-outfit text-base font-bold text-gray-900 dark:text-white">Verified Retailers</h3>
+          <span className="text-xs font-extrabold text-gray-400">({sortedRetailers.length})</span>
         </div>
-      ) : viewMode === 'cards' ? (
-        <div className="space-y-4">
-          {processed.map((offer, idx) => (
-            <StorePriceCard 
-              key={idx} 
-              offer={offer} 
-              isLowest={offer.price === lowestPrice} 
-            />
-          ))}
+
+        {sortedRetailers.length === 0 ? (
+          <div className="p-4 bg-gray-50/50 dark:bg-gray-800/20 rounded-2xl border border-gray-200/60 dark:border-gray-800 flex items-center gap-2.5 text-xs text-gray-400">
+            <MdInfoOutline size={18} className="text-amber-500 flex-shrink-0" />
+            <span>No verified retailer offers (Amazon, Flipkart, Croma) were returned for this exact laptop configuration.</span>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {sortedRetailers.map((offer, idx) => (
+              <StorePriceCard key={idx} offer={offer} isLowest={offer.price === lowestPrice} />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* SECTION 2: OFFICIAL MANUFACTURER STORES */}
+      <div className="space-y-4 pt-2">
+        <div className="flex items-center gap-2">
+          <MdShield className="text-blue-500" size={20} />
+          <h3 className="font-outfit text-base font-bold text-gray-900 dark:text-white">Official Manufacturer Stores</h3>
+          <span className="text-xs font-extrabold text-gray-400">({sortedManufacturers.length})</span>
         </div>
-      ) : (
-        <div className="overflow-x-auto rounded-3xl border border-gray-200 dark:border-darkBorder bg-white dark:bg-darkCard shadow-sm">
-          <table className="w-full text-left text-xs min-w-[650px]">
-            <thead>
-              <tr className="border-b border-gray-200 dark:border-darkBorder bg-gray-50/50 dark:bg-gray-800/10 font-bold text-gray-400">
-                <th className="p-4">Store Platform</th>
-                <th className="p-4">Current Price</th>
-                <th className="p-4">Discount</th>
-                <th className="p-4">Availability</th>
-                <th className="p-4">Status</th>
-                <th className="p-4 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-              {processed.map((offer, idx) => {
-                const isLowest = offer.price === lowestPrice;
-                return (
-                  <tr key={idx} className={isLowest ? 'bg-emerald-500/5' : ''}>
-                    <td className="p-4 font-bold flex items-center gap-3">
-                      <StoreLogo storeName={offer.storeName} logoUrl={offer.logoUrl} size="w-8 h-8" />
-                      <span>{offer.storeName}</span>
-                    </td>
-                    <td className="p-4 font-outfit font-extrabold text-sm text-emerald-600 dark:text-emerald-400">
-                      ₹{offer.price.toLocaleString('en-IN')}
-                    </td>
-                    <td className="p-4 font-semibold text-gray-500">
-                      {offer.discount > 0 ? `${offer.discount}% OFF` : 'Standard'}
-                    </td>
-                    <td className="p-4 text-gray-500 font-medium">
-                      {offer.availability}
-                    </td>
-                    <td className="p-4">
-                      <VerifiedStoreBadge verified={offer.verified} storeName={offer.storeName} />
-                    </td>
-                    <td className="p-4 text-right">
-                      <a
-                        href={offer.buyUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-outfit text-xs font-extrabold rounded-xl shadow-xs transition-all inline-block"
-                      >
-                        Buy at {offer.storeName.split(' ')[0]}
-                      </a>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+
+        {sortedManufacturers.length === 0 ? (
+          <div className="p-4 bg-gray-50/50 dark:bg-gray-800/20 rounded-2xl border border-gray-200/60 dark:border-gray-800 flex items-center gap-2.5 text-xs text-gray-400">
+            <MdInfoOutline size={18} className="text-blue-400 flex-shrink-0" />
+            <span>No official brand store links found for this configuration.</span>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {sortedManufacturers.map((offer, idx) => (
+              <StorePriceCard key={idx} offer={offer} isLowest={offer.price === lowestPrice} />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* SECTION 3: MARKETPLACE / OTHER SELLERS */}
+      {!verifiedOnly && (
+        <div className="space-y-4 pt-2">
+          <div className="flex items-center gap-2">
+            <MdStorefront className="text-gray-400" size={20} />
+            <h3 className="font-outfit text-base font-bold text-gray-900 dark:text-white">Other Sellers & Marketplaces</h3>
+            <span className="text-xs font-extrabold text-gray-400">({sortedMarketplace.length})</span>
+          </div>
+
+          {sortedMarketplace.length === 0 ? (
+            <div className="p-4 bg-gray-50/50 dark:bg-gray-800/20 rounded-2xl border border-gray-200/60 dark:border-gray-800 text-xs text-gray-400">
+              No additional marketplace seller offers found.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {sortedMarketplace.map((offer, idx) => (
+                <StorePriceCard key={idx} offer={offer} isLowest={offer.price === lowestPrice} />
+              ))}
+            </div>
+          )}
         </div>
       )}
 

@@ -5,6 +5,7 @@
 const VERIFIED_STORES = {
   amazon: {
     name: 'Amazon India',
+    category: 'retailer',
     domains: ['amazon.in', 'www.amazon.in'],
     logo: 'https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg',
     verified: true,
@@ -13,6 +14,7 @@ const VERIFIED_STORES = {
   },
   flipkart: {
     name: 'Flipkart',
+    category: 'retailer',
     domains: ['flipkart.com', 'www.flipkart.com'],
     logo: 'https://upload.wikimedia.org/wikipedia/commons/7/7a/Flipkart_logo.svg',
     verified: true,
@@ -21,6 +23,7 @@ const VERIFIED_STORES = {
   },
   croma: {
     name: 'Croma',
+    category: 'retailer',
     domains: ['croma.com', 'www.croma.com'],
     logo: 'https://res.cloudinary.com/demo/image/upload/v1672531100/croma_logo.png',
     verified: true,
@@ -29,6 +32,7 @@ const VERIFIED_STORES = {
   },
   relianceDigital: {
     name: 'Reliance Digital',
+    category: 'retailer',
     domains: ['reliancedigital.in', 'www.reliancedigital.in'],
     logo: 'https://res.cloudinary.com/demo/image/upload/v1672531100/reliancedigital_logo.png',
     verified: true,
@@ -37,6 +41,7 @@ const VERIFIED_STORES = {
   },
   vijaySales: {
     name: 'Vijay Sales',
+    category: 'retailer',
     domains: ['vijaysales.com', 'www.vijaysales.com'],
     logo: 'https://res.cloudinary.com/demo/image/upload/v1672531100/vijaysales_logo.png',
     verified: true,
@@ -45,6 +50,7 @@ const VERIFIED_STORES = {
   },
   asus: {
     name: 'ASUS Official Store',
+    category: 'manufacturer',
     domains: ['asus.com', 'www.asus.com', 'asus.in', 'www.asus.in', 'estore.asus.com'],
     logo: 'https://upload.wikimedia.org/wikipedia/commons/2/2e/ASUS_Logo.svg',
     verified: true,
@@ -53,6 +59,7 @@ const VERIFIED_STORES = {
   },
   dell: {
     name: 'Dell Official Store',
+    category: 'manufacturer',
     domains: ['dell.com', 'www.dell.com', 'dell.co.in', 'www.dell.co.in'],
     logo: 'https://upload.wikimedia.org/wikipedia/commons/1/18/Dell_logo_2016.svg',
     verified: true,
@@ -61,6 +68,7 @@ const VERIFIED_STORES = {
   },
   hp: {
     name: 'HP Official Store',
+    category: 'manufacturer',
     domains: ['hp.com', 'www.hp.com', 'store.hp.com'],
     logo: 'https://upload.wikimedia.org/wikipedia/commons/a/ad/HP_logo_2012.svg',
     verified: true,
@@ -69,6 +77,7 @@ const VERIFIED_STORES = {
   },
   lenovo: {
     name: 'Lenovo Official Store',
+    category: 'manufacturer',
     domains: ['lenovo.com', 'www.lenovo.com'],
     logo: 'https://upload.wikimedia.org/wikipedia/commons/b/b8/Lenovo_logo_2015.svg',
     verified: true,
@@ -77,6 +86,7 @@ const VERIFIED_STORES = {
   },
   acer: {
     name: 'Acer Official Store',
+    category: 'manufacturer',
     domains: ['acer.com', 'www.acer.com', 'store.acer.com'],
     logo: 'https://upload.wikimedia.org/wikipedia/commons/a/a1/Acer_Logo.svg',
     verified: true,
@@ -85,6 +95,7 @@ const VERIFIED_STORES = {
   },
   msi: {
     name: 'MSI Official Store',
+    category: 'manufacturer',
     domains: ['msi.com', 'www.msi.com', 'store.msi.com'],
     logo: 'https://upload.wikimedia.org/wikipedia/commons/c/c9/MSI_Logo.svg',
     verified: true,
@@ -92,7 +103,8 @@ const VERIFIED_STORES = {
     priority: 11
   },
   apple: {
-    name: 'Apple Store India',
+    name: 'Apple Official Store',
+    category: 'manufacturer',
     domains: ['apple.com', 'www.apple.com'],
     logo: 'https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg',
     verified: true,
@@ -101,6 +113,7 @@ const VERIFIED_STORES = {
   },
   samsung: {
     name: 'Samsung Official Store',
+    category: 'manufacturer',
     domains: ['samsung.com', 'www.samsung.com'],
     logo: 'https://upload.wikimedia.org/wikipedia/commons/2/24/Samsung_Logo.svg',
     verified: true,
@@ -110,105 +123,137 @@ const VERIFIED_STORES = {
 };
 
 /**
- * Validates external URL and checks if hostname belongs to a verified store
+ * Extracts target destination URL if rawUrl is a SerpAPI / Google tracking redirect
+ */
+const unpackTrackingUrl = (rawUrl) => {
+  if (!rawUrl || typeof rawUrl !== 'string') return rawUrl;
+  try {
+    const parsed = new URL(rawUrl);
+    if (parsed.hostname.includes('google.com') && parsed.searchParams.has('url')) {
+      const extracted = parsed.searchParams.get('url');
+      if (extracted) return extracted;
+    }
+  } catch (e) {
+    // Ignore URL parse error
+  }
+  return rawUrl;
+};
+
+/**
+ * Validates external URL and strictly verifies hostname against approved store list.
  * 
  * @param {string} rawUrl 
- * @returns {object} { isValid, hostname, verified, storeKey, storeName, logo, sanitizedUrl }
+ * @param {string} fallbackSourceName
+ * @returns {object} { isVerified, storeCategory, storeKey, storeName, domain, sanitizedUrl, logo }
  */
-const verifyStoreDomain = (rawUrl) => {
+const isVerifiedStore = (rawUrl, fallbackSourceName = '') => {
   if (!rawUrl || typeof rawUrl !== 'string') {
     return {
-      isValid: false,
-      hostname: '',
-      verified: false,
+      isVerified: false,
+      storeCategory: 'marketplace',
       storeKey: 'unknown',
-      storeName: 'Marketplace / Other Seller',
-      logo: '',
-      sanitizedUrl: '#'
+      storeName: fallbackSourceName || 'Marketplace / Other Seller',
+      domain: '',
+      sanitizedUrl: '#',
+      logo: ''
     };
   }
 
-  const trimmed = rawUrl.trim();
+  const unpackedUrl = unpackTrackingUrl(rawUrl.trim());
 
-  // Prevent dangerous protocols (e.g. javascript:, data:, file:)
-  if (trimmed.toLowerCase().startsWith('javascript:') || trimmed.toLowerCase().startsWith('data:')) {
+  // Prevent dangerous script protocols
+  if (unpackedUrl.toLowerCase().startsWith('javascript:') || unpackedUrl.toLowerCase().startsWith('data:')) {
     return {
-      isValid: false,
-      hostname: '',
-      verified: false,
+      isVerified: false,
+      storeCategory: 'marketplace',
       storeKey: 'blocked',
-      storeName: 'Blocked Malicious Link',
-      logo: '',
-      sanitizedUrl: '#'
+      storeName: 'Blocked Link',
+      domain: '',
+      sanitizedUrl: '#',
+      logo: ''
     };
   }
 
   try {
     let urlObj;
-    if (!/^https?:\/\//i.test(trimmed)) {
-      urlObj = new URL(`https://${trimmed}`);
+    if (!/^https?:\/\//i.test(unpackedUrl)) {
+      urlObj = new URL(`https://${unpackedUrl}`);
     } else {
-      urlObj = new URL(trimmed);
+      urlObj = new URL(unpackedUrl);
     }
 
     if (urlObj.protocol !== 'http:' && urlObj.protocol !== 'https:') {
       return {
-        isValid: false,
-        hostname: '',
-        verified: false,
+        isVerified: false,
+        storeCategory: 'marketplace',
         storeKey: 'invalid',
         storeName: 'Invalid Protocol',
-        logo: '',
-        sanitizedUrl: '#'
+        domain: '',
+        sanitizedUrl: '#',
+        logo: ''
       };
     }
 
-    const hostname = urlObj.hostname.toLowerCase();
+    // Extract hostname, lowercase, strip www.
+    let hostname = urlObj.hostname.toLowerCase();
+    if (hostname.startsWith('www.')) {
+      hostname = hostname.substring(4);
+    }
+
     const sanitizedUrl = urlObj.href;
 
-    // Match hostname against verified stores
+    // Strict domain matching against VERIFIED_STORES whitelist
     for (const [key, storeInfo] of Object.entries(VERIFIED_STORES)) {
-      const match = storeInfo.domains.some(domain => 
-        hostname === domain || hostname.endsWith(`.${domain}`)
-      );
+      const match = storeInfo.domains.some(domain => {
+        let cleanDomain = domain.toLowerCase();
+        if (cleanDomain.startsWith('www.')) cleanDomain = cleanDomain.substring(4);
+        return hostname === cleanDomain || hostname.endsWith(`.${cleanDomain}`);
+      });
+
       if (match) {
         return {
-          isValid: true,
-          hostname,
-          verified: true,
+          isVerified: true,
+          storeCategory: storeInfo.category, // 'retailer' | 'manufacturer'
           storeKey: key,
           storeName: storeInfo.name,
-          logo: storeInfo.logo,
-          sanitizedUrl
+          domain: hostname,
+          sanitizedUrl,
+          logo: storeInfo.logo
         };
       }
     }
 
-    // If URL is valid HTTP/HTTPS but not in our verified registry
+    // Valid URL but not in verified store whitelist -> Marketplace / Other Seller
+    const cleanedSourceName = (fallbackSourceName || hostname)
+      .replace(/https?:\/\//i, '')
+      .replace(/^www\./i, '')
+      .split('/')[0];
+
     return {
-      isValid: true,
-      hostname,
-      verified: false,
+      isVerified: false,
+      storeCategory: 'marketplace',
       storeKey: 'marketplace',
-      storeName: 'Marketplace / Other Seller',
-      logo: '',
-      sanitizedUrl
+      storeName: cleanedSourceName || 'Marketplace / Other Seller',
+      domain: hostname,
+      sanitizedUrl,
+      logo: ''
     };
 
   } catch (err) {
     return {
-      isValid: false,
-      hostname: '',
-      verified: false,
+      isVerified: false,
+      storeCategory: 'marketplace',
       storeKey: 'invalid',
-      storeName: 'Invalid URL Format',
-      logo: '',
-      sanitizedUrl: '#'
+      storeName: fallbackSourceName || 'Marketplace / Other Seller',
+      domain: '',
+      sanitizedUrl: '#',
+      logo: ''
     };
   }
 };
 
 module.exports = {
   VERIFIED_STORES,
-  verifyStoreDomain
+  isVerifiedStore,
+  verifyStoreDomain: isVerifiedStore
 };

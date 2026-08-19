@@ -23,11 +23,13 @@ const LaptopShoppingPage = () => {
   const [error, setError] = useState('');
   const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);
 
-  const fetchShoppingData = async () => {
+  const fetchShoppingData = async (forceRefresh = false) => {
     setLoading(true);
     setError('');
     try {
-      const res = await priceService.getLaptopPrices(targetId);
+      const res = forceRefresh 
+        ? await priceService.refreshPrices(targetId) 
+        : await priceService.getLaptopPrices(targetId);
       setData(res.data);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to fetch laptop shopping and price comparison data.');
@@ -88,7 +90,7 @@ const LaptopShoppingPage = () => {
 
         <div className="flex items-center gap-3">
           <button
-            onClick={fetchShoppingData}
+            onClick={() => fetchShoppingData(true)}
             className="px-3.5 py-2 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 text-xs font-bold flex items-center gap-1.5 transition-all"
             title="Refresh prices"
           >

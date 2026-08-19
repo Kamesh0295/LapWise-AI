@@ -181,6 +181,25 @@ const deletePriceAlert = async (req, res, next) => {
   }
 };
 
+/**
+ * POST /api/prices/:laptopId/refresh
+ * Forces a live refresh of store offers via SerpAPI, validates domain/config, updates DB and returns fresh response
+ */
+const refreshLaptopPrices = async (req, res, next) => {
+  try {
+    const { laptopId } = req.params;
+    const data = await priceService.getComparisonForLaptop(laptopId, true);
+
+    if (!data) {
+      return next(new NotFoundError('Laptop not found.'));
+    }
+
+    res.status(200).json(formatResponse('Price comparison data refreshed successfully', data));
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getLaptopPrices,
   searchLaptopPrices,
@@ -188,5 +207,6 @@ module.exports = {
   getLowestPrice,
   createPriceAlert,
   getUserPriceAlerts,
-  deletePriceAlert
+  deletePriceAlert,
+  refreshLaptopPrices
 };

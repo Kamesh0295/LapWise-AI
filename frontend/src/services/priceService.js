@@ -11,6 +11,15 @@ const priceService = {
   },
 
   /**
+   * Force live refresh of multi-store prices
+   * @param {string} laptopId 
+   */
+  refreshPrices: async (laptopId) => {
+    const response = await api.post(`/prices/${laptopId}/refresh`);
+    return response.data;
+  },
+
+  /**
    * Search live prices across stores for a query string
    * @param {string} query 
    */

@@ -12,6 +12,14 @@ const priceHistorySchema = new mongoose.Schema(
       default: 'Online Store',
       trim: true
     },
+    storeDomain: {
+      type: String,
+      default: ''
+    },
+    configurationHash: {
+      type: String,
+      default: ''
+    },
     price: {
       type: Number,
       required: true
@@ -44,6 +52,7 @@ const priceHistorySchema = new mongoose.Schema(
 
 // Indexing for rapid retrieval of price history charts
 priceHistorySchema.index({ laptop: 1, recordedAt: 1 });
+priceHistorySchema.index({ laptop: 1, configurationHash: 1, recordedAt: -1 });
 priceHistorySchema.index({ laptop: 1, store: 1, recordedAt: -1 });
 
 module.exports = mongoose.model('PriceHistory', priceHistorySchema);
