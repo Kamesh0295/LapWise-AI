@@ -7,11 +7,15 @@ import {
   MdOutlinePriceCheck, 
   MdSpeed, 
   MdKeyboardArrowDown, 
-  MdQuestionAnswer 
+  MdQuestionAnswer,
+  MdLock,
+  MdArrowForward
 } from 'react-icons/md';
+import { useAuth } from '../context/AuthContext';
 
 const Home = () => {
   const [activeFaq, setActiveFaq] = useState(null);
+  const { isAuthenticated } = useAuth();
 
   const toggleFaq = (index) => {
     setActiveFaq(activeFaq === index ? null : index);
@@ -52,6 +56,24 @@ const Home = () => {
         <div className="absolute top-[-50px] right-[10%] w-[400px] h-[400px] rounded-full bg-indigo-500 blur-[130px]" />
       </div>
 
+      {/* Guest Lock Banner */}
+      {!isAuthenticated && (
+        <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white py-3 px-4 text-center text-xs font-semibold flex items-center justify-center gap-3 flex-wrap border-b border-blue-800/50 shadow-xs">
+          <span className="flex items-center gap-1.5 text-blue-300">
+            <MdLock size={15} />
+            <span>Guests can explore the Home page. Log in or Register to search laptops, compare prices & get AI recommendations!</span>
+          </span>
+          <div className="flex items-center gap-2">
+            <Link to="/login" className="px-3 py-1 bg-white text-blue-950 font-extrabold rounded-lg hover:bg-blue-50 transition-all text-[11px]">
+              Sign In
+            </Link>
+            <Link to="/register" className="px-3 py-1 bg-[#1E88E5] text-white font-extrabold rounded-lg hover:bg-blue-600 transition-all text-[11px]">
+              Register
+            </Link>
+          </div>
+        </div>
+      )}
+
       {/* Hero Section */}
       <section className="max-w-7xl mx-auto px-4 pt-16 pb-20 sm:px-6 lg:px-8 text-center">
         <motion.div
@@ -75,9 +97,10 @@ const Home = () => {
           <div className="mt-10 flex flex-wrap justify-center gap-4">
             <Link 
               to="/wizard" 
-              className="px-8 py-3.5 text-sm font-semibold text-white bg-gradient-to-r from-primary-500 to-indigo-500 hover:from-primary-600 hover:to-indigo-600 rounded-xl shadow-lg hover:shadow-primary-500/25 transition-all hover:scale-105"
+              className="px-8 py-3.5 text-sm font-semibold text-white bg-gradient-to-r from-primary-500 to-indigo-500 hover:from-primary-600 hover:to-indigo-600 rounded-xl shadow-lg hover:shadow-primary-500/25 transition-all hover:scale-105 flex items-center gap-2"
             >
-              Find My Laptop
+              <span>Find My Laptop</span>
+              <MdArrowForward size={16} />
             </Link>
             <Link 
               to="/search" 
@@ -123,7 +146,7 @@ const Home = () => {
             <p className="text-xs text-gray-500 mt-2">Explore the features that make TechMatch the ultimate laptop recommendation system.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            {features.map((feat, index) => (
+            {features.map((feat) => (
               <div key={feat.title} className="flex gap-4">
                 <div className="flex-shrink-0 w-12 h-12 flex items-center justify-center bg-primary-100 dark:bg-primary-950/60 text-primary-500 rounded-xl">
                   {feat.icon}
@@ -159,8 +182,8 @@ const Home = () => {
         </div>
       </section>
 
-      {/* FAQ Segment */}
-      <section className="max-w-4xl mx-auto px-4 py-16 sm:px-6 lg:px-8 border-t border-gray-200/50 dark:border-gray-800/40">
+      {/* FAQ Section */}
+      <section className="max-w-4xl mx-auto px-4 pb-24 sm:px-6 lg:px-8 border-t border-gray-200/50 dark:border-gray-800/40 pt-16">
         <div className="text-center mb-12">
           <h2 className="font-outfit text-3xl font-extrabold text-gray-900 dark:text-white flex items-center justify-center gap-2">
             <MdQuestionAnswer className="text-primary-500" />
@@ -168,31 +191,22 @@ const Home = () => {
           </h2>
         </div>
         <div className="space-y-4">
-          {faqs.map((faq, idx) => {
-            const isOpen = activeFaq === idx;
-            return (
-              <div 
-                key={idx} 
-                className="bg-white dark:bg-darkCard border border-gray-200/60 dark:border-darkBorder rounded-xl overflow-hidden shadow-sm"
+          {faqs.map((faq, idx) => (
+            <div key={idx} className="bg-white dark:bg-darkCard border border-gray-200/60 dark:border-darkBorder rounded-2xl overflow-hidden shadow-xs">
+              <button
+                onClick={() => toggleFaq(idx)}
+                className="w-full p-5 text-left font-bold text-sm text-gray-900 dark:text-white flex items-center justify-between gap-4 focus:outline-none"
               >
-                <button
-                  onClick={() => toggleFaq(idx)}
-                  className="w-full flex items-center justify-between p-5 text-left font-semibold text-sm hover:bg-gray-50/50 dark:hover:bg-gray-800/10 transition-colors"
-                >
-                  <span>{faq.q}</span>
-                  <MdKeyboardArrowDown 
-                    size={22} 
-                    className={`text-gray-400 transition-transform duration-300 ${isOpen ? 'rotate-180 text-primary-500' : ''}`} 
-                  />
-                </button>
-                {isOpen && (
-                  <div className="p-5 pt-0 text-xs text-gray-500 dark:text-gray-400 border-t border-gray-100 dark:border-gray-800/50 leading-relaxed">
-                    {faq.a}
-                  </div>
-                )}
-              </div>
-            );
-          })}
+                <span>{faq.q}</span>
+                <MdKeyboardArrowDown className={`text-primary-500 transition-transform ${activeFaq === idx ? 'rotate-180' : ''}`} size={22} />
+              </button>
+              {activeFaq === idx && (
+                <div className="px-5 pb-5 text-xs text-gray-500 dark:text-gray-400 leading-relaxed border-t border-gray-100 dark:border-gray-800/60 pt-3">
+                  {faq.a}
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       </section>
 
