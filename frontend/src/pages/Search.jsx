@@ -15,7 +15,8 @@ import {
   Sparkles,
   AlertTriangle,
   RotateCcw,
-  BookOpen
+  BookOpen,
+  X
 } from 'lucide-react';
 import laptopService from '../services/laptopService';
 import searchService from '../services/searchService';
@@ -141,6 +142,19 @@ const Search = () => {
   useEffect(() => {
     setSearchInput(searchParams.get('search') || '');
   }, [searchParams]);
+
+  // Handle Escape key to close mobile filter drawer
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setMobileFilterOpen(false);
+      }
+    };
+    if (mobileFilterOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+    }
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [mobileFilterOpen]);
 
   // Autocomplete live suggestion helper
   useEffect(() => {
@@ -363,7 +377,268 @@ const Search = () => {
     } catch (err) {
       alert(err.message);
     }
-  };
+  const activeFilterCount = [
+    brand, purpose, ram, minPrice, maxPrice, launchYear, storage, gpu, processor, display, refreshRate, operatingSystem, battery, weight, rating
+  ].filter(Boolean).length;
+
+  const renderFilterControls = () => (
+    <div className="space-y-4">
+      {/* 1. Purpose Filter */}
+      <div className="space-y-2">
+        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Use Case / Purpose</label>
+        <select
+          value={purpose}
+          onChange={(e) => updateParams({ purpose: e.target.value })}
+          className="w-full p-2.5 text-xs rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-darkCard focus:outline-none focus:ring-1 focus:ring-primary-500 font-semibold text-gray-700 dark:text-gray-200"
+        >
+          <option value="">All Use Cases</option>
+          <option value="Gaming">Gaming</option>
+          <option value="Programming">Programming</option>
+          <option value="Student">Student</option>
+          <option value="Office">Office / Business</option>
+          <option value="AI / ML">AI / ML</option>
+          <option value="Entertainment">Entertainment</option>
+          <option value="General">General</option>
+        </select>
+      </div>
+
+      {/* 2. Sorting options */}
+      <div className="space-y-2">
+        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Sort Order</label>
+        <select
+          value={sort}
+          onChange={(e) => updateParams({ sort: e.target.value })}
+          className="w-full p-2.5 text-xs rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-darkCard focus:outline-none focus:ring-1 focus:ring-primary-500 font-semibold text-gray-700 dark:text-gray-200"
+        >
+          <option value="newest">Newest</option>
+          <option value="price_asc">Price Low to High</option>
+          <option value="price_desc">Price High to Low</option>
+          <option value="rating_desc">Highest Rated</option>
+          <option value="popular_desc">Most Popular</option>
+          <option value="latest_added">Latest Added</option>
+        </select>
+      </div>
+
+      {/* 3. Budget Range */}
+      <div className="space-y-2">
+        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Budget Range (₹)</label>
+        <div className="flex gap-2 items-center">
+          <input
+            type="number"
+            placeholder="Min"
+            value={minPrice}
+            onChange={(e) => updateParams({ minPrice: e.target.value })}
+            className="w-full p-2 text-xs rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-darkCard focus:outline-none font-semibold text-gray-700 dark:text-gray-200"
+          />
+          <span className="text-gray-400">-</span>
+          <input
+            type="number"
+            placeholder="Max"
+            value={maxPrice}
+            onChange={(e) => updateParams({ maxPrice: e.target.value })}
+            className="w-full p-2 text-xs rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-darkCard focus:outline-none font-semibold text-gray-700 dark:text-gray-200"
+          />
+        </div>
+      </div>
+
+      {/* Collapsible details for specs */}
+      <div className="space-y-3 pt-2">
+        {/* Brand multi-select */}
+        <details className="group space-y-2 border-b border-gray-100 dark:border-gray-800/60 pb-3" open>
+          <summary className="flex justify-between items-center cursor-pointer list-none font-outfit font-bold text-xs text-gray-700 dark:text-gray-200">
+            <span>Brands</span>
+            <ChevronRight className="w-3.5 h-3.5 transition-transform group-open:rotate-90 text-gray-400" />
+          </summary>
+          <div className="pt-2 space-y-1.5 text-xs">
+            {['ASUS', 'HP', 'Dell', 'Lenovo', 'Apple', 'MSI', 'Acer', 'Samsung', 'Honor'].map(b => (
+              <label key={b} className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={brand.split(',').includes(b)}
+                  onChange={() => toggleFilterParam('brand', b)}
+                  className="rounded border-gray-300 text-primary-500 focus:ring-primary-500 w-3.5 h-3.5"
+                />
+                <span className="font-semibold text-gray-600 dark:text-gray-300">{b}</span>
+              </label>
+            ))}
+          </div>
+        </details>
+
+        {/* Processor choices */}
+        <details className="group space-y-2 border-b border-gray-100 dark:border-gray-800/60 pb-3">
+          <summary className="flex justify-between items-center cursor-pointer list-none font-outfit font-bold text-xs text-gray-700 dark:text-gray-200">
+            <span>Processor Type</span>
+            <ChevronRight className="w-3.5 h-3.5 transition-transform group-open:rotate-90 text-gray-400" />
+          </summary>
+          <div className="pt-2 space-y-1.5 text-xs">
+            {['Intel Core i5', 'Intel Core i7', 'Intel Core i9', 'Intel Core Ultra', 'AMD Ryzen 5', 'AMD Ryzen 7', 'Apple M1', 'Apple M2', 'Apple M3'].map(p => (
+              <label key={p} className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={processor.split(',').includes(p)}
+                  onChange={() => toggleFilterParam('processor', p)}
+                  className="rounded border-gray-300 text-primary-500 focus:ring-primary-500 w-3.5 h-3.5"
+                />
+                <span className="font-semibold text-gray-600 dark:text-gray-300">{p}</span>
+              </label>
+            ))}
+          </div>
+        </details>
+
+        {/* RAM Size */}
+        <details className="group space-y-2 border-b border-gray-100 dark:border-gray-800/60 pb-3">
+          <summary className="flex justify-between items-center cursor-pointer list-none font-outfit font-bold text-xs text-gray-700 dark:text-gray-200">
+            <span>RAM Memory</span>
+            <ChevronRight className="w-3.5 h-3.5 transition-transform group-open:rotate-90 text-gray-400" />
+          </summary>
+          <div className="pt-2 space-y-1.5 text-xs">
+            {['8', '16', '32', '64'].map(r => (
+              <label key={r} className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={ram.split(',').includes(r)}
+                  onChange={() => toggleFilterParam('ram', r)}
+                  className="rounded border-gray-300 text-primary-500 focus:ring-primary-500 w-3.5 h-3.5"
+                />
+                <span className="font-semibold text-gray-600 dark:text-gray-300">{r} GB</span>
+              </label>
+            ))}
+          </div>
+        </details>
+
+        {/* Storage Size */}
+        <details className="group space-y-2 border-b border-gray-100 dark:border-gray-800/60 pb-3">
+          <summary className="flex justify-between items-center cursor-pointer list-none font-outfit font-bold text-xs text-gray-700 dark:text-gray-200">
+            <span>Storage Capacity</span>
+            <ChevronRight className="w-3.5 h-3.5 transition-transform group-open:rotate-90 text-gray-400" />
+          </summary>
+          <div className="pt-2 space-y-1.5 text-xs">
+            {['512GB', '1TB', '2TB', '256GB'].map(s => (
+              <label key={s} className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={storage.split(',').includes(s)}
+                  onChange={() => toggleFilterParam('storage', s)}
+                  className="rounded border-gray-300 text-primary-500 focus:ring-primary-500 w-3.5 h-3.5"
+                />
+                <span className="font-semibold text-gray-600 dark:text-gray-300">{s}</span>
+              </label>
+            ))}
+          </div>
+        </details>
+
+        {/* Graphics GPU */}
+        <details className="group space-y-2 border-b border-gray-100 dark:border-gray-800/60 pb-3">
+          <summary className="flex justify-between items-center cursor-pointer list-none font-outfit font-bold text-xs text-gray-700 dark:text-gray-200">
+            <span>Graphics (GPU)</span>
+            <ChevronRight className="w-3.5 h-3.5 transition-transform group-open:rotate-90 text-gray-400" />
+          </summary>
+          <div className="pt-2 space-y-1.5 text-xs">
+            {['NVIDIA RTX 4050', 'NVIDIA RTX 4060', 'NVIDIA RTX 4070', 'NVIDIA RTX 3050', 'Intel Iris Xe', 'AMD Radeon'].map(g => (
+              <label key={g} className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={gpu.split(',').includes(g)}
+                  onChange={() => toggleFilterParam('gpu', g)}
+                  className="rounded border-gray-300 text-primary-500 focus:ring-primary-500 w-3.5 h-3.5"
+                />
+                <span className="font-semibold text-gray-600 dark:text-gray-300">{g}</span>
+              </label>
+            ))}
+          </div>
+        </details>
+
+        {/* Display Type */}
+        <div className="space-y-2 pb-3 border-b border-gray-100 dark:border-gray-800/60">
+          <label className="font-outfit font-bold text-xs text-gray-700 dark:text-gray-200 block">Display Type</label>
+          <select
+            value={display}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val === '') {
+                const newParams = Object.fromEntries(searchParams.entries());
+                delete newParams.display;
+                newParams.page = '1';
+                setSearchParams(newParams);
+              } else {
+                updateParams({ display: val });
+              }
+            }}
+            className="w-full p-2.5 text-xs rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-darkCard focus:outline-none focus:ring-1 focus:ring-primary-500 text-gray-600 dark:text-gray-300 font-semibold"
+          >
+            <option value="">All Displays</option>
+            <option value="OLED">OLED</option>
+            <option value="IPS">IPS</option>
+            <option value="Mini LED">Mini LED</option>
+            <option value="Touchscreen">Touchscreen</option>
+          </select>
+        </div>
+
+        {/* Refresh Rate */}
+        <details className="group space-y-2 border-b border-gray-100 dark:border-gray-800/60 pb-3">
+          <summary className="flex justify-between items-center cursor-pointer list-none font-outfit font-bold text-xs text-gray-700 dark:text-gray-200">
+            <span>Refresh Rate</span>
+            <ChevronRight className="w-3.5 h-3.5 transition-transform group-open:rotate-90 text-gray-400" />
+          </summary>
+          <div className="pt-2 space-y-1.5 text-xs">
+            {[60, 120, 144, 165].map(r => (
+              <label key={r} className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={refreshRate.split(',').includes(r.toString())}
+                  onChange={() => toggleFilterParam('refreshRate', r)}
+                  className="rounded border-gray-300 text-primary-500 focus:ring-primary-500 w-3.5 h-3.5"
+                />
+                <span className="font-semibold text-gray-600 dark:text-gray-300">{r} Hz</span>
+              </label>
+            ))}
+          </div>
+        </details>
+
+        {/* Operating System */}
+        <details className="group space-y-2 border-b border-gray-100 dark:border-gray-800/60 pb-3">
+          <summary className="flex justify-between items-center cursor-pointer list-none font-outfit font-bold text-xs text-gray-700 dark:text-gray-200">
+            <span>Operating System</span>
+            <ChevronRight className="w-3.5 h-3.5 transition-transform group-open:rotate-90 text-gray-400" />
+          </summary>
+          <div className="pt-2 space-y-1.5 text-xs">
+            {['Windows', 'macOS', 'ChromeOS'].map(o => (
+              <label key={o} className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={operatingSystem.split(',').includes(o)}
+                  onChange={() => toggleFilterParam('operatingSystem', o)}
+                  className="rounded border-gray-300 text-primary-500 focus:ring-primary-500 w-3.5 h-3.5"
+                />
+                <span className="font-semibold text-gray-600 dark:text-gray-300">{o}</span>
+              </label>
+            ))}
+          </div>
+        </details>
+
+        {/* Launch Year */}
+        <details className="group space-y-2 border-b border-gray-100 dark:border-gray-800/60 pb-3">
+          <summary className="flex justify-between items-center cursor-pointer list-none font-outfit font-bold text-xs text-gray-700 dark:text-gray-200">
+            <span>Launch Year</span>
+            <ChevronRight className="w-3.5 h-3.5 transition-transform group-open:rotate-90 text-gray-400" />
+          </summary>
+          <div className="pt-2 space-y-1.5 text-xs">
+            {['2024', '2023', '2022'].map(y => (
+              <label key={y} className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={launchYear.split(',').includes(y)}
+                  onChange={() => toggleFilterParam('launchYear', y)}
+                  className="rounded border-gray-300 text-primary-500 focus:ring-primary-500 w-3.5 h-3.5"
+                />
+                <span className="font-semibold text-gray-600 dark:text-gray-300">{y}</span>
+              </label>
+            ))}
+          </div>
+        </details>
+      </div>
+    </div>
+  );
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8 space-y-8">
@@ -475,381 +750,97 @@ const Search = () => {
         </div>
       </div>
 
-      {/* Mobile Filter Trigger Button */}
-      <div className="lg:hidden">
+      {/* Mobile & Tablet Action Bar: Filters Trigger + Sort Dropdown */}
+      <div className="flex items-center gap-3 lg:hidden my-2">
         <button
-          onClick={() => setMobileFilterOpen(!mobileFilterOpen)}
-          className="w-full py-3 px-4 bg-primary-500 hover:bg-primary-600 text-white font-bold text-xs rounded-xl shadow-md flex items-center justify-center gap-2 transition-all active:scale-98"
+          onClick={() => setMobileFilterOpen(true)}
+          className="flex-1 py-3 px-4 bg-primary-500 hover:bg-primary-600 text-white font-bold text-xs rounded-xl shadow-md flex items-center justify-center gap-2 transition-all active:scale-98"
         >
           <SlidersHorizontal className="w-4 h-4" />
-          <span>Filters & Specification Refine</span>
+          <span>Filters {activeFilterCount > 0 ? `(${activeFilterCount})` : ''}</span>
         </button>
+
+        <select
+          value={sort}
+          onChange={(e) => updateParams({ sort: e.target.value })}
+          className="py-3 px-3 border border-gray-200 dark:border-gray-800 bg-white dark:bg-darkCard text-gray-700 dark:text-gray-200 rounded-xl text-xs font-bold focus:outline-none focus:ring-1 focus:ring-primary-500"
+        >
+          <option value="newest">Sort: Newest</option>
+          <option value="price_asc">Price Low to High</option>
+          <option value="price_desc">Price High to Low</option>
+          <option value="rating_desc">Highest Rated</option>
+          <option value="popular_desc">Most Popular</option>
+        </select>
       </div>
 
-      {/* 2. Main content area: Filter Sidebar + Catalog grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        
-        {/* Mobile Filter Drawer Overlay */}
-        {mobileFilterOpen && (
-          <div 
+      {/* Mobile Slide-in Filter Drawer */}
+      {mobileFilterOpen && (
+        <>
+          {/* Backdrop Overlay */}
+          <div
             onClick={() => setMobileFilterOpen(false)}
-            className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-xs z-40"
+            className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-xs z-50 transition-opacity"
           />
-        )}
 
-        {/* Left Side: Advanced Specification Filters */}
-        <aside className={`space-y-6 lg:border-r border-gray-200/50 dark:border-gray-800/40 lg:pr-6 h-fit bg-gray-50/50 dark:bg-darkCard/20 p-4 lg:p-0 rounded-2xl ${
-          mobileFilterOpen 
-            ? 'fixed inset-x-4 bottom-4 z-50 bg-white dark:bg-darkCard max-h-[85vh] overflow-y-auto shadow-2xl p-6 border border-gray-200 dark:border-gray-800' 
-            : 'hidden lg:block'
-        }`}>
-          <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-3">
-            <div className="flex items-center gap-2">
-              <SlidersHorizontal className="text-primary-500 w-4.5 h-4.5" />
-              <h3 className="font-outfit font-bold text-sm">Specification Filters</h3>
-            </div>
-            <button 
-              onClick={() => setMobileFilterOpen(false)}
-              className="lg:hidden text-gray-400 hover:text-gray-600 dark:hover:text-white p-1 text-xs font-bold"
-            >
-              ✕ Close
-            </button>
-          </div>
-
-          <div className="space-y-4">
-            {/* 1. Purpose Filter */}
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Use Case / Purpose</label>
-              <select
-                value={purpose}
-                onChange={(e) => updateParams({ purpose: e.target.value })}
-                className="w-full p-2.5 text-xs rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-darkCard focus:outline-none focus:ring-1 focus:ring-primary-500"
-              >
-                <option value="">All Use Cases</option>
-                <option value="Gaming">Gaming</option>
-                <option value="Programming">Programming</option>
-                <option value="Student">Student</option>
-                <option value="Office">Office / Business</option>
-                <option value="AI / ML">AI / ML</option>
-                <option value="Entertainment">Entertainment</option>
-                <option value="General">General</option>
-              </select>
-            </div>
-
-            {/* 2. Sorting options */}
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Sort Order</label>
-              <select
-                value={sort}
-                onChange={(e) => updateParams({ sort: e.target.value })}
-                className="w-full p-2.5 text-xs rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-darkCard focus:outline-none focus:ring-1 focus:ring-primary-500"
-              >
-                <option value="newest">Newest</option>
-                <option value="price_asc">Price Low to High</option>
-                <option value="price_desc">Price High to Low</option>
-                <option value="rating_desc">Highest Rated</option>
-                <option value="popular_desc">Most Popular</option>
-                <option value="latest_added">Latest Added</option>
-              </select>
-            </div>
-
-            {/* 3. Budget Range */}
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Budget Range (₹)</label>
-              <div className="flex gap-2 items-center">
-                <input
-                  type="number"
-                  placeholder="Min"
-                  value={minPrice}
-                  onChange={(e) => updateParams({ minPrice: e.target.value })}
-                  className="w-full p-2 text-xs rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-darkCard focus:outline-none"
-                />
-                <span className="text-gray-400">-</span>
-                <input
-                  type="number"
-                  placeholder="Max"
-                  value={maxPrice}
-                  onChange={(e) => updateParams({ maxPrice: e.target.value })}
-                  className="w-full p-2 text-xs rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-darkCard focus:outline-none"
-                />
+          {/* Slide-in Drawer Container */}
+          <div className="lg:hidden fixed top-0 right-0 bottom-0 w-full sm:max-w-md bg-white dark:bg-darkCard z-50 flex flex-col shadow-2xl transition-transform duration-300 animate-slide-in-right">
+            {/* Header */}
+            <div className="p-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <SlidersHorizontal className="text-primary-500 w-4.5 h-4.5" />
+                <h3 className="font-outfit font-extrabold text-base text-gray-900 dark:text-white">Specification Filters</h3>
               </div>
+              <button
+                onClick={() => setMobileFilterOpen(false)}
+                className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-white rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                aria-label="Close filters drawer"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
-            {/* Collapsible details for specs */}
-            <div className="space-y-3 pt-2">
-              {/* Brand multi-select */}
-              <details className="group space-y-2 border-b border-gray-100 dark:border-gray-800/60 pb-3" open>
-                <summary className="flex justify-between items-center cursor-pointer list-none font-outfit font-bold text-xs text-gray-700 dark:text-gray-200">
-                  <span>Brands</span>
-                  <ChevronRight className="w-3.5 h-3.5 transition-transform group-open:rotate-90 text-gray-400" />
-                </summary>
-                <div className="pt-2 space-y-1.5 text-xs">
-                  {['ASUS', 'HP', 'Dell', 'Lenovo', 'Apple', 'MSI', 'Acer', 'Samsung', 'Honor'].map(b => (
-                    <label key={b} className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={brand.split(',').includes(b)}
-                        onChange={() => toggleFilterParam('brand', b)}
-                        className="rounded border-gray-300 text-primary-500 focus:ring-primary-500 w-3.5 h-3.5"
-                      />
-                      <span className="font-semibold text-gray-600 dark:text-gray-300">{b}</span>
-                    </label>
-                  ))}
-                </div>
-              </details>
+            {/* Scrollable Filter Content */}
+            <div className="p-6 overflow-y-auto flex-1 max-h-[calc(100vh-140px)]">
+              {renderFilterControls()}
+            </div>
 
-              {/* Processor choices */}
-              <details className="group space-y-2 border-b border-gray-100 dark:border-gray-800/60 pb-3">
-                <summary className="flex justify-between items-center cursor-pointer list-none font-outfit font-bold text-xs text-gray-700 dark:text-gray-200">
-                  <span>Processor Type</span>
-                  <ChevronRight className="w-3.5 h-3.5 transition-transform group-open:rotate-90 text-gray-400" />
-                </summary>
-                <div className="pt-2 space-y-1.5 text-xs">
-                  {['Intel Core i5', 'Intel Core i7', 'Intel Core i9', 'Intel Core Ultra', 'AMD Ryzen 5', 'AMD Ryzen 7', 'Apple M1', 'Apple M2', 'Apple M3'].map(p => (
-                    <label key={p} className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={processor.split(',').includes(p)}
-                        onChange={() => toggleFilterParam('processor', p)}
-                        className="rounded border-gray-300 text-primary-500 focus:ring-primary-500 w-3.5 h-3.5"
-                      />
-                      <span className="font-semibold text-gray-600 dark:text-gray-300">{p}</span>
-                    </label>
-                  ))}
-                </div>
-              </details>
-
-              {/* RAM choices */}
-              <details className="group space-y-2 border-b border-gray-100 dark:border-gray-800/60 pb-3">
-                <summary className="flex justify-between items-center cursor-pointer list-none font-outfit font-bold text-xs text-gray-700 dark:text-gray-200">
-                  <span>RAM Memory</span>
-                  <ChevronRight className="w-3.5 h-3.5 transition-transform group-open:rotate-90 text-gray-400" />
-                </summary>
-                <div className="pt-2 space-y-1.5 text-xs">
-                  {[4, 8, 12, 16, 32, 64].map(r => (
-                    <label key={r} className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={ram.split(',').includes(r.toString())}
-                        onChange={() => toggleFilterParam('ram', r)}
-                        className="rounded border-gray-300 text-primary-500 focus:ring-primary-500 w-3.5 h-3.5"
-                      />
-                      <span className="font-semibold text-gray-600 dark:text-gray-300">{r} GB</span>
-                    </label>
-                  ))}
-                </div>
-              </details>
-
-              {/* Storage options */}
-              <details className="group space-y-2 border-b border-gray-100 dark:border-gray-800/60 pb-3">
-                <summary className="flex justify-between items-center cursor-pointer list-none font-outfit font-bold text-xs text-gray-700 dark:text-gray-200">
-                  <span>Storage Capacity</span>
-                  <ChevronRight className="w-3.5 h-3.5 transition-transform group-open:rotate-90 text-gray-400" />
-                </summary>
-                <div className="pt-2 space-y-1.5 text-xs">
-                  {['256GB SSD', '512GB SSD', '1TB SSD', '2TB SSD'].map(s => (
-                    <label key={s} className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={storage.split(',').includes(s)}
-                        onChange={() => toggleFilterParam('storage', s)}
-                        className="rounded border-gray-300 text-primary-500 focus:ring-primary-500 w-3.5 h-3.5"
-                      />
-                      <span className="font-semibold text-gray-600 dark:text-gray-300">{s}</span>
-                    </label>
-                  ))}
-                </div>
-              </details>
-
-              {/* GPU options */}
-              <details className="group space-y-2 border-b border-gray-100 dark:border-gray-800/60 pb-3">
-                <summary className="flex justify-between items-center cursor-pointer list-none font-outfit font-bold text-xs text-gray-700 dark:text-gray-200">
-                  <span>Graphics (GPU)</span>
-                  <ChevronRight className="w-3.5 h-3.5 transition-transform group-open:rotate-90 text-gray-400" />
-                </summary>
-                <div className="pt-2 space-y-1.5 text-xs">
-                  {['RTX 4060', 'RTX 4050', 'RTX 3050', 'Radeon', 'Iris Xe'].map(g => (
-                    <label key={g} className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={gpu.split(',').includes(g)}
-                        onChange={() => toggleFilterParam('gpu', g)}
-                        className="rounded border-gray-300 text-primary-500 focus:ring-primary-500 w-3.5 h-3.5"
-                      />
-                      <span className="font-semibold text-gray-600 dark:text-gray-300">{g}</span>
-                    </label>
-                  ))}
-                </div>
-              </details>
-
-              {/* Display Type Dropdown */}
-              <div className="space-y-2 pb-3 border-b border-gray-100 dark:border-gray-800/60">
-                <label className="font-outfit font-bold text-xs text-gray-700 dark:text-gray-200 block">Display Type</label>
-                <select
-                  value={display}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    if (val === '') {
-                      const newParams = Object.fromEntries(searchParams.entries());
-                      delete newParams.display;
-                      newParams.page = '1';
-                      setSearchParams(newParams);
-                    } else {
-                      updateParams({ display: val });
-                    }
-                  }}
-                  className="w-full p-2.5 text-xs rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-darkCard focus:outline-none focus:ring-1 focus:ring-primary-500 text-gray-600 dark:text-gray-300 font-semibold"
-                >
-                  <option value="">All Displays</option>
-                  <option value="OLED">OLED</option>
-                  <option value="IPS">IPS</option>
-                  <option value="Mini LED">Mini LED</option>
-                  <option value="Touchscreen">Touchscreen</option>
-                </select>
-              </div>
-
-              {/* Refresh Rate panel */}
-              <details className="group space-y-2 border-b border-gray-100 dark:border-gray-800/60 pb-3">
-                <summary className="flex justify-between items-center cursor-pointer list-none font-outfit font-bold text-xs text-gray-700 dark:text-gray-200">
-                  <span>Refresh Rate</span>
-                  <ChevronRight className="w-3.5 h-3.5 transition-transform group-open:rotate-90 text-gray-400" />
-                </summary>
-                <div className="pt-2 space-y-1.5 text-xs">
-                  {[60, 120, 144, 165].map(r => (
-                    <label key={r} className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={refreshRate.split(',').includes(r.toString())}
-                        onChange={() => toggleFilterParam('refreshRate', r)}
-                        className="rounded border-gray-300 text-primary-500 focus:ring-primary-500 w-3.5 h-3.5"
-                      />
-                      <span className="font-semibold text-gray-600 dark:text-gray-300">{r} Hz</span>
-                    </label>
-                  ))}
-                </div>
-              </details>
-
-              {/* Operating System */}
-              <details className="group space-y-2 border-b border-gray-100 dark:border-gray-800/60 pb-3">
-                <summary className="flex justify-between items-center cursor-pointer list-none font-outfit font-bold text-xs text-gray-700 dark:text-gray-200">
-                  <span>Operating System</span>
-                  <ChevronRight className="w-3.5 h-3.5 transition-transform group-open:rotate-90 text-gray-400" />
-                </summary>
-                <div className="pt-2 space-y-1.5 text-xs">
-                  {['Windows', 'macOS', 'ChromeOS'].map(o => (
-                    <label key={o} className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={operatingSystem.split(',').includes(o)}
-                        onChange={() => toggleFilterParam('operatingSystem', o)}
-                        className="rounded border-gray-300 text-primary-500 focus:ring-primary-500 w-3.5 h-3.5"
-                      />
-                      <span className="font-semibold text-gray-600 dark:text-gray-300">{o}</span>
-                    </label>
-                  ))}
-                </div>
-              </details>
-
-              {/* Battery */}
-              <details className="group space-y-2 border-b border-gray-100 dark:border-gray-800/60 pb-3">
-                <summary className="flex justify-between items-center cursor-pointer list-none font-outfit font-bold text-xs text-gray-700 dark:text-gray-200">
-                  <span>Battery Specification</span>
-                  <ChevronRight className="w-3.5 h-3.5 transition-transform group-open:rotate-90 text-gray-400" />
-                </summary>
-                <div className="pt-2 space-y-1.5 text-xs">
-                  {['Integrated Battery', 'Long Life Battery'].map(b => (
-                    <label key={b} className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={battery.split(',').includes(b)}
-                        onChange={() => toggleFilterParam('battery', b)}
-                        className="rounded border-gray-300 text-primary-500 focus:ring-primary-500 w-3.5 h-3.5"
-                      />
-                      <span className="font-semibold text-gray-600 dark:text-gray-300">{b}</span>
-                    </label>
-                  ))}
-                </div>
-              </details>
-
-              {/* Weight */}
-              <details className="group space-y-2 border-b border-gray-100 dark:border-gray-800/60 pb-3">
-                <summary className="flex justify-between items-center cursor-pointer list-none font-outfit font-bold text-xs text-gray-700 dark:text-gray-200">
-                  <span>Weight Class</span>
-                  <ChevronRight className="w-3.5 h-3.5 transition-transform group-open:rotate-90 text-gray-400" />
-                </summary>
-                <div className="pt-2 space-y-1.5 text-xs">
-                  {[
-                    { label: "Ultraportable (< 1.5kg)", value: "light" },
-                    { label: "Standard (1.5 - 2.0kg)", value: "medium" },
-                    { label: "Desktop Replacement (> 2.0kg)", value: "heavy" }
-                  ].map(w => (
-                    <label key={w.value} className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={weight.split(',').includes(w.value)}
-                        onChange={() => toggleFilterParam('weight', w.value)}
-                        className="rounded border-gray-300 text-primary-500 focus:ring-primary-500 w-3.5 h-3.5"
-                      />
-                      <span className="font-semibold text-gray-600 dark:text-gray-300">{w.label}</span>
-                    </label>
-                  ))}
-                </div>
-              </details>
-
-              {/* Rating */}
-              <details className="group space-y-2 border-b border-gray-100 dark:border-gray-800/60 pb-3">
-                <summary className="flex justify-between items-center cursor-pointer list-none font-outfit font-bold text-xs text-gray-700 dark:text-gray-200">
-                  <span>Minimum Rating</span>
-                  <ChevronRight className="w-3.5 h-3.5 transition-transform group-open:rotate-90 text-gray-400" />
-                </summary>
-                <div className="pt-2 space-y-1.5 text-xs">
-                  {[
-                    { label: "All Ratings", value: "" },
-                    { label: "4.5 ★ & above", value: "4.5" },
-                    { label: "4.0 ★ & above", value: "4.0" },
-                    { label: "3.5 ★ & above", value: "3.5" }
-                  ].map(r => (
-                    <label key={r.value} className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="rating"
-                        checked={rating === r.value}
-                        onChange={() => updateParams({ rating: r.value })}
-                        className="border-gray-300 text-primary-500 focus:ring-primary-500 w-3.5 h-3.5"
-                      />
-                      <span className="font-semibold text-gray-600 dark:text-gray-300">{r.label}</span>
-                    </label>
-                  ))}
-                </div>
-              </details>
-
-              {/* Launch Year */}
-              <details className="group space-y-2 border-b border-gray-100 dark:border-gray-800/60 pb-3">
-                <summary className="flex justify-between items-center cursor-pointer list-none font-outfit font-bold text-xs text-gray-700 dark:text-gray-200">
-                  <span>Launch Year</span>
-                  <ChevronRight className="w-3.5 h-3.5 transition-transform group-open:rotate-90 text-gray-400" />
-                </summary>
-                <div className="pt-2 space-y-1.5 text-xs">
-                  {['2024', '2023', '2022'].map(y => (
-                    <label key={y} className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={launchYear.split(',').includes(y)}
-                        onChange={() => toggleFilterParam('launchYear', y)}
-                        className="rounded border-gray-300 text-primary-500 focus:ring-primary-500 w-3.5 h-3.5"
-                      />
-                      <span className="font-semibold text-gray-600 dark:text-gray-300">{y}</span>
-                    </label>
-                  ))}
-                </div>
-              </details>
+            {/* Sticky Bottom Actions */}
+            <div className="p-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50/80 dark:bg-gray-900/80 backdrop-blur-xs flex items-center gap-3">
+              <button
+                onClick={() => {
+                  setSearchParams({});
+                }}
+                className="flex-1 py-3 px-4 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 font-bold text-xs rounded-xl transition-all"
+              >
+                Clear All
+              </button>
+              <button
+                onClick={() => setMobileFilterOpen(false)}
+                className="flex-1 py-3 px-4 bg-primary-500 hover:bg-primary-600 text-white font-bold text-xs rounded-xl shadow-md transition-all active:scale-98"
+              >
+                Apply Filters
+              </button>
             </div>
           </div>
+        </>
+      )}
+
+      {/* 2. Main content area: Filter Sidebar + Catalog grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8">
+        
+        {/* Desktop Permanent Filter Sidebar */}
+        <aside className="hidden lg:block space-y-6 lg:border-r border-gray-200/50 dark:border-gray-800/40 lg:pr-6 h-fit bg-gray-50/50 dark:bg-darkCard/20 p-4 lg:p-0 rounded-2xl">
+          <div className="flex items-center gap-2 border-b border-gray-100 dark:border-gray-800 pb-3">
+            <SlidersHorizontal className="text-primary-500 w-4.5 h-4.5" />
+            <h3 className="font-outfit font-bold text-sm">Specification Filters</h3>
+          </div>
+
+          {renderFilterControls()}
 
           {/* Reset Filters button */}
           <button
             onClick={() => setSearchParams({})}
-            className="w-full py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 text-gray-600 dark:text-gray-300"
+            className="w-full py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 text-gray-600 dark:text-gray-300 mt-4"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             Clear All Filters
@@ -857,7 +848,7 @@ const Search = () => {
         </aside>
 
         {/* Right Side: Laptop Catalogue Grid */}
-        <div className="lg:col-span-3 space-y-8">
+        <div className="space-y-8">
           {isLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {[1, 2, 3, 4, 5, 6].map(i => (
