@@ -43,6 +43,14 @@ const AppRoutes = () => {
         }
       />
       <Route
+        path="/recommend"
+        element={
+          <MainLayout>
+            <RecommendationWizard />
+          </MainLayout>
+        }
+      />
+      <Route
         path="/results"
         element={
           <MainLayout>
@@ -51,7 +59,31 @@ const AppRoutes = () => {
         }
       />
       <Route
+        path="/recommendations"
+        element={
+          <MainLayout>
+            <RecommendationResult />
+          </MainLayout>
+        }
+      />
+      <Route
         path="/laptops/:id"
+        element={
+          <MainLayout>
+            <LaptopDetails />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/laptop/:id"
+        element={
+          <MainLayout>
+            <LaptopDetails />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/details/:id"
         element={
           <MainLayout>
             <LaptopDetails />
@@ -68,6 +100,22 @@ const AppRoutes = () => {
       />
       <Route
         path="/search"
+        element={
+          <MainLayout>
+            <Search />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/catalog"
+        element={
+          <MainLayout>
+            <Search />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/laptops"
         element={
           <MainLayout>
             <Search />
@@ -145,7 +193,27 @@ const AppRoutes = () => {
         }
       />
       <Route
+        path="/favorites"
+        element={
+          <PrivateRoute>
+            <MainLayout>
+              <Wishlist />
+            </MainLayout>
+          </PrivateRoute>
+        }
+      />
+      <Route
         path="/profile"
+        element={
+          <PrivateRoute>
+            <MainLayout>
+              <Profile />
+            </MainLayout>
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/settings"
         element={
           <PrivateRoute>
             <MainLayout>
@@ -177,27 +245,7 @@ const AppRoutes = () => {
         }
       />
       <Route
-        path="/admin/laptops"
-        element={
-          <AdminRoute>
-            <AdminLayout>
-              <Admin />
-            </AdminLayout>
-          </AdminRoute>
-        }
-      />
-      <Route
-        path="/admin/users"
-        element={
-          <AdminRoute>
-            <AdminLayout>
-              <Admin />
-            </AdminLayout>
-          </AdminRoute>
-        }
-      />
-      <Route
-        path="/admin/analytics"
+        path="/admin/*"
         element={
           <AdminRoute>
             <AdminLayout>

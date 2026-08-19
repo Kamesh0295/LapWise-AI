@@ -68,8 +68,17 @@ if (process.env.NODE_ENV === 'development') {
 app.use(express.json({ limit: '10kb' })); // Limit body sizes to 10kb to avoid DoS
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
+const path = require('path');
+const fs = require('fs');
+
+// Static dist serving if built frontend dist exists
+const distPath = path.join(__dirname, '../frontend/dist');
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath));
+}
+
 // Health check root route
-app.get('/', (req, res) => {
+app.get('/api/health', (req, res) => {
   res.status(200).json({
     status: 'success',
     message: 'Laptop Recommendation System Backend API is running successfully!',
@@ -88,10 +97,20 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/notifications', notificationRoutes);
 
-// Fallback: handle unhandled route paths
-app.all('*', (req, res, next) => {
-  next(new NotFoundError(`Cannot find route ${req.originalUrl} on this server`));
-});
+// SPA fallback for non-API GET routes when serving frontend from backend
+if (fs.existsSync(distPath)) {
+  app.get('*', (req, res, next) => {
+    if (req.originalUrl.startsWith('/api')) {
+      return next(new NotFoundError(`Cannot find route ${req.originalUrl} on this server`));
+    }
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+} else {
+  // Fallback: handle unhandled API route paths
+  app.all('*', (req, res, next) => {
+    next(new NotFoundError(`Cannot find route ${req.originalUrl} on this server`));
+  });
+}
 
 // Centralized error handling middleware
 app.use(errorHandler);
