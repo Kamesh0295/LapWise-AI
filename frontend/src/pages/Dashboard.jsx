@@ -168,12 +168,22 @@ const Dashboard = () => {
                     <span className="font-bold text-gray-900 dark:text-white truncate block max-w-[150px]">{laptop.brand} {laptop.model}</span>
                     <span className="text-green-600 font-semibold block mt-0.5">₹{laptop.price?.toLocaleString('en-IN')}</span>
                   </div>
-                  <Link 
-                    to={`/laptops/${laptop._id}`}
-                    className="p-1.5 border border-gray-100 dark:border-gray-800 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-400 hover:text-primary-500 transition-colors"
-                  >
-                    <MdLaunch size={16} />
-                  </Link>
+                  <div className="flex items-center gap-1.5">
+                    <Link 
+                      to={`/prices/${laptop._id}`}
+                      className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-outfit text-[11px] font-extrabold rounded-md shadow-2xs"
+                      title="Check Prices"
+                    >
+                      Check Prices
+                    </Link>
+                    <Link 
+                      to={`/laptops/${laptop._id}`}
+                      className="p-1.5 border border-gray-100 dark:border-gray-800 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-400 hover:text-primary-500 transition-colors"
+                      title="Details"
+                    >
+                      <MdLaunch size={16} />
+                    </Link>
+                  </div>
                 </div>
               ))}
             </div>

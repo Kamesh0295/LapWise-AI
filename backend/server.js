@@ -21,6 +21,32 @@ const reviewRoutes = require('./routes/reviewRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const searchRoutes = require('./routes/searchRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
+const priceRoutes = require('./routes/priceRoutes');
+
+const Store = require('./models/Store');
+const { VERIFIED_STORES } = require('./config/verifiedStores');
+
+// Helper to seed verified store configurations
+const seedVerifiedStores = async () => {
+  try {
+    for (const [key, info] of Object.entries(VERIFIED_STORES)) {
+      await Store.findOneAndUpdate(
+        { domain: info.domains[0] },
+        {
+          name: info.name,
+          domain: info.domains[0],
+          logo: info.logo,
+          verified: info.verified,
+          country: info.country,
+          priority: info.priority
+        },
+        { upsert: true, new: true }
+      );
+    }
+  } catch (err) {
+    console.warn('Verified stores seeding notice:', err.message);
+  }
+};
 
 // Services for catalog sync
 const catalogSyncService = require('./services/catalogSyncService');
@@ -37,7 +63,8 @@ const app = express();
 
 // Connect to MongoDB Database
 connectDB().then(() => {
-  // Initialize and schedule catalog syncing
+  // Seed verified store records & initialize catalog sync
+  seedVerifiedStores();
   catalogSyncService.initializeCatalog();
   catalogSyncService.startBackgroundSyncScheduler();
 }).catch(err => {
@@ -96,6 +123,7 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api', priceRoutes);
 
 // SPA fallback for non-API GET routes when serving frontend from backend
 if (fs.existsSync(distPath)) {

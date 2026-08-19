@@ -203,11 +203,17 @@ const RecommendationResult = () => {
 
             <div className="flex flex-wrap gap-3">
               <Link 
-                to={`/laptops/${bestMatch.laptop._id}`} 
-                className="px-6 py-2.5 bg-primary-500 hover:bg-primary-600 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 shadow"
+                to={`/prices/${bestMatch.laptop._id}`} 
+                className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-outfit font-extrabold text-xs rounded-xl flex items-center gap-1.5 shadow"
               >
-                <span>View Full Details</span>
+                <span>Check Prices</span>
                 <MdLaunch />
+              </Link>
+              <Link 
+                to={`/laptops/${bestMatch.laptop._id}`} 
+                className="px-5 py-2.5 bg-primary-500 hover:bg-primary-600 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 shadow"
+              >
+                <span>Full Details</span>
               </Link>
               <button 
                 onClick={() => handleCompareToggle(bestMatch.laptop)}
@@ -262,9 +268,12 @@ const RecommendationResult = () => {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3 mt-6 pt-4 border-t border-gray-100 dark:border-gray-800">
-                  <Link to={`/laptops/${item.laptop._id}`} className="text-xs font-bold text-primary-500 hover:text-primary-600 flex items-center gap-0.5">
-                    <span>Inspect Specs</span>
+                  <Link to={`/prices/${item.laptop._id}`} className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-outfit text-xs font-extrabold rounded-lg flex items-center gap-1 shadow-sm">
+                    <span>Check Prices</span>
                     <MdLaunch />
+                  </Link>
+                  <Link to={`/laptops/${item.laptop._id}`} className="text-xs font-bold text-gray-500 hover:text-gray-700 dark:text-gray-400">
+                    <span>Specs</span>
                   </Link>
                   <div className="ml-auto flex items-center gap-2">
                     <button 

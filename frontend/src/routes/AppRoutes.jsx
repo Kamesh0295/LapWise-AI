@@ -20,6 +20,7 @@ import Admin from '../pages/Admin';
 import VerifyEmail from '../pages/VerifyEmail';
 import ForgotPassword from '../pages/ForgotPassword';
 import ResetPassword from '../pages/ResetPassword';
+import PriceComparison from '../pages/PriceComparison';
 import NotFound from '../pages/NotFound';
 
 const AppRoutes = () => {
@@ -71,6 +72,14 @@ const AppRoutes = () => {
         element={
           <MainLayout>
             <LaptopDetails />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/prices/:laptopId"
+        element={
+          <MainLayout>
+            <PriceComparison />
           </MainLayout>
         }
       />

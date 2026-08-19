@@ -234,7 +234,15 @@ const LaptopDetails = () => {
               </div>
             </div>
             <h1 className="font-outfit text-3xl font-extrabold">{laptop.brand} {laptop.model}</h1>
-            <span className="font-outfit text-3xl font-black text-green-600 block">₹{laptop.price.toLocaleString('en-IN')}</span>
+            <div className="flex items-center gap-4 flex-wrap">
+              <span className="font-outfit text-3xl font-black text-emerald-600 dark:text-emerald-400">₹{laptop.price.toLocaleString('en-IN')}</span>
+              <Link 
+                to={`/prices/${laptop._id}`}
+                className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-outfit text-xs font-extrabold rounded-xl shadow-md transition-all hover:scale-105"
+              >
+                Compare Prices Across Stores
+              </Link>
+            </div>
             <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">{laptop.description}</p>
           </div>
         </div>

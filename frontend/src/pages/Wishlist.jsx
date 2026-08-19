@@ -102,11 +102,17 @@ const Wishlist = () => {
 
             <div className="flex gap-2 mt-6">
               <Link 
+                to={`/prices/${laptop._id}`}
+                className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-outfit text-xs font-extrabold rounded-xl flex items-center justify-center gap-1 shadow-sm"
+              >
+                <span>Check Prices</span>
+                <MdLaunch />
+              </Link>
+              <Link 
                 to={`/laptops/${laptop._id}`}
                 className="w-full py-2 border border-gray-200 dark:border-darkBorder hover:bg-gray-50 dark:hover:bg-gray-800 text-xs font-bold rounded-xl flex items-center justify-center gap-1"
               >
                 <span>Details</span>
-                <MdLaunch />
               </Link>
               <button 
                 onClick={() => handleCompareToggle(laptop)}
