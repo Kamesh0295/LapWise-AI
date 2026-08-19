@@ -1,5 +1,6 @@
 const Laptop = require('../models/Laptop');
 const serpApiService = require('./serpApiService');
+const { extractLaptopPrice } = require('../utils/helpers');
 
 /**
  * Maps purpose parameter to simplified query terms for SerpAPI
@@ -175,13 +176,17 @@ const saveSerpToMongoCache = async (products, queryCategory) => {
     const refreshRate = title.match(/\b(90|120|144|165|240)\s*Hz\b/i) ? parseInt(title.match(/\b(90|120|144|165|240)\s*Hz\b/i)[1], 10) : 60;
     const OS = brand === 'Apple' ? 'macOS' : (titleLower.includes('chromebook') ? 'ChromeOS' : 'Windows 11 Home');
     
+    const price = extractLaptopPrice(item);
+    const rating = item.rating || 4.0;
+    const reviewCount = item.reviews || 10;
+
     // Purpose
     const purposeSet = new Set(['General']);
     if (queryCategory.toLowerCase().includes('gaming') || titleLower.includes('gaming') || gpu.includes('RTX')) {
       purposeSet.add('Gaming');
       purposeSet.add('Entertainment');
     }
-    if (queryCategory.toLowerCase().includes('student') || ram <= 8 || item.extracted_price < 40000) {
+    if (queryCategory.toLowerCase().includes('student') || ram <= 8 || price < 40000) {
       purposeSet.add('Student');
     }
     if (queryCategory.toLowerCase().includes('programming') || ram >= 16) {
@@ -196,10 +201,6 @@ const saveSerpToMongoCache = async (products, queryCategory) => {
       purposeSet.add('Programming');
     }
     const purpose = Array.from(purposeSet);
-
-    const price = item.extracted_price || parseFloat((item.price || '0').replace(/[^0-9.]/g, '')) || 0;
-    const rating = item.rating || 4.0;
-    const reviewCount = item.reviews || 10;
 
     const specScores = {
       cpu: Math.min(100, 60 + (ram / 32 * 20)),

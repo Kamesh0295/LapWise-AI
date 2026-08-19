@@ -7,7 +7,7 @@ const Review = require('../models/Review');
 const uploadService = require('../services/uploadService');
 const emailService = require('../services/emailService');
 const { NotFoundError, BadRequestError } = require('../utils/AppError');
-const { formatResponse } = require('../utils/helpers');
+const { formatResponse, extractLaptopPrice } = require('../utils/helpers');
 
 const escapeRegex = (str) => str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
 
@@ -356,7 +356,7 @@ const fetchLaptopsFromSerpAPI = async (searchQuery) => {
  */
 const parseSerpProductToLaptop = (product) => {
   const title = product.title || '';
-  const price = product.extracted_price || parseFloat((product.price || '0').replace(/[^0-9.]/g, '')) || 0;
+  const price = extractLaptopPrice(product);
   
   // Extract brand from title
   const brands = ['ASUS', 'HP', 'Dell', 'Lenovo', 'Apple', 'MSI', 'Acer', 'Samsung', 'Honor', 'Microsoft', 'Gigabyte', 'LG'];

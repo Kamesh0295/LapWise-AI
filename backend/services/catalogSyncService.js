@@ -1,5 +1,6 @@
 const Laptop = require('../models/Laptop');
 const serpApiService = require('./serpApiService');
+const { extractLaptopPrice } = require('../utils/helpers');
 
 // 18 required categories to sync
 const SYNC_CATEGORIES = [
@@ -148,6 +149,10 @@ const parseProductToLaptop = (product, queryCategory) => {
     }
   }
 
+  const price = extractLaptopPrice(product);
+  const rating = product.rating || 4.0;
+  const reviewCount = product.reviews || 10;
+
   // Purpose mapping
   const purposeSet = new Set(['General']);
   const titleLower = title.toLowerCase();
@@ -156,7 +161,7 @@ const parseProductToLaptop = (product, queryCategory) => {
     purposeSet.add('Gaming');
     purposeSet.add('Entertainment');
   }
-  if (queryCategory.toLowerCase().includes('student') || ram <= 8 || product.extracted_price < 40000) {
+  if (queryCategory.toLowerCase().includes('student') || ram <= 8 || price < 40000) {
     purposeSet.add('Student');
   }
   if (queryCategory.toLowerCase().includes('programming') || ram >= 16) {
@@ -175,10 +180,6 @@ const parseProductToLaptop = (product, queryCategory) => {
     purposeSet.add('Entertainment');
   }
   const purpose = Array.from(purposeSet);
-
-  const price = product.extracted_price || parseFloat((product.price || '0').replace(/[^0-9.]/g, '')) || 0;
-  const rating = product.rating || 4.0;
-  const reviewCount = product.reviews || 10;
 
   // Display description
   let display = `${displaySize}-inch display`;
@@ -336,10 +337,60 @@ const syncCatalog = async () => {
 };
 
 /**
+ * Utility: Scans database for laptops with corrupted/zero prices and auto-repairs them
+ */
+const repairCorruptedLaptopPrices = async () => {
+  try {
+    const corruptedLaptops = await Laptop.find({
+      $or: [
+        { price: { $eq: 0 } },
+        { price: { $gt: 1000000 } },
+        { price: { $lt: 10000 } },
+        { price: { $exists: false } }
+      ]
+    });
+
+    if (corruptedLaptops.length > 0) {
+      console.log(`[Price Repair] Found ${corruptedLaptops.length} laptops with invalid/corrupted prices in database. Repairing...`);
+      for (const laptop of corruptedLaptops) {
+        const repairedPrice = extractLaptopPrice(laptop);
+        laptop.price = repairedPrice;
+        
+        if (laptop.storeLinks && laptop.storeLinks.length > 0) {
+          laptop.storeLinks.forEach(store => {
+            if (!store.price || store.price < 10000 || store.price > 1000000) {
+              store.price = repairedPrice;
+            }
+          });
+        }
+
+        if (!laptop.priceHistory || laptop.priceHistory.length === 0) {
+          laptop.priceHistory = [{ price: repairedPrice, recordedAt: new Date() }];
+        } else {
+          laptop.priceHistory = laptop.priceHistory.filter(h => h.price >= 10000 && h.price <= 1000000);
+          if (laptop.priceHistory.length === 0) {
+            laptop.priceHistory.push({ price: repairedPrice, recordedAt: new Date() });
+          }
+        }
+
+        await laptop.save();
+      }
+      console.log(`[Price Repair] Successfully repaired ${corruptedLaptops.length} database laptops.`);
+    }
+  } catch (err) {
+    console.error('[Price Repair Error] Failed to repair corrupted prices:', err.message);
+  }
+};
+
+/**
  * Automatically initializes catalog on server startup if DB is dry (<300 items)
  */
 const initializeCatalog = async () => {
   try {
+    // 1. Sanitize any existing laptops with corrupted or 0 prices
+    await repairCorruptedLaptopPrices();
+
+    // 2. Perform seed import if needed
     const dbCount = await Laptop.countDocuments();
     console.log(`[Startup Check] Database contains ${dbCount} laptops.`);
     if (dbCount < 300) {
