@@ -3,10 +3,13 @@ import { FaGoogle } from 'react-icons/fa';
 
 const GoogleSignInButton = ({ onGoogleSuccess, onError, text = 'continue_with' }) => {
   const googleBtnRef = useRef(null);
-  const clientId = import.meta.env?.VITE_GOOGLE_CLIENT_ID || '1048892742918-placeholder.apps.googleusercontent.com';
+  const clientId = import.meta.env?.VITE_GOOGLE_CLIENT_ID || '';
+  const isPlaceholder = !clientId || clientId.includes('placeholder');
 
   useEffect(() => {
-    // Load Google Identity Services SDK script dynamically if not present
+    if (isPlaceholder) return;
+
+    // Load Google Identity Services SDK script dynamically if real Client ID exists
     const loadGoogleSdk = () => {
       if (document.getElementById('google-gsi-client')) {
         initializeGoogleButton();
@@ -48,31 +51,37 @@ const GoogleSignInButton = ({ onGoogleSuccess, onError, text = 'continue_with' }
             width: '320'
           });
         } catch (err) {
-          console.warn('Google Identity button initialization warning:', err.message);
+          console.warn('Google Identity button initialization notice:', err.message);
         }
       }
     };
 
     loadGoogleSdk();
-  }, [clientId, onGoogleSuccess, onError, text]);
+  }, [clientId, isPlaceholder, onGoogleSuccess, onError, text]);
 
-  // Fallback fallback handle when GIS is blocked or loading
-  const handleFallbackClick = () => {
-    onGoogleSuccess('mock-google-id-token');
+  // Click handler when testing without real Google Client ID
+  const handleGoogleClick = () => {
+    onGoogleSuccess('mock-google-id-token-dev');
   };
 
-  return (
-    <div className="w-full flex justify-center my-2">
-      <div ref={googleBtnRef} className="w-full max-w-[320px]">
+  if (isPlaceholder) {
+    return (
+      <div className="w-full flex justify-center my-2">
         <button
           type="button"
-          onClick={handleFallbackClick}
-          className="w-full py-2.5 px-4 border border-gray-200 dark:border-darkBorder hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200 font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-2xs"
+          onClick={handleGoogleClick}
+          className="w-full max-w-[320px] py-2.5 px-4 border border-gray-200 dark:border-darkBorder hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200 font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-2xs cursor-pointer"
         >
           <FaGoogle className="text-red-500" size={16} />
           <span>Continue with Google</span>
         </button>
       </div>
+    );
+  }
+
+  return (
+    <div className="w-full flex justify-center my-2">
+      <div ref={googleBtnRef} className="w-full max-w-[320px]" />
     </div>
   );
 };
