@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'react-chartcharts' || require('recharts');
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { MdTrendingDown, MdTrendingUp, MdInfoOutline, MdHistory } from 'react-icons/md';
 
 const PriceHistoryChart = ({ trendData }) => {
