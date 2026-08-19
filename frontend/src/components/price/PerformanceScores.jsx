@@ -1,60 +1,60 @@
 import React from 'react';
+import { MdSpeed, MdMemory, MdDeveloperMode, MdSportsEsports, MdBatteryChargingFull } from 'react-icons/md';
 
 const PerformanceScores = ({ laptop }) => {
   if (!laptop) return null;
 
-  const scores = laptop.specScores || {};
-  const ram = laptop.ram || 16;
-  const isRTX = /rtx/i.test(laptop.gpu || '');
-  const isApple = laptop.brand === 'Apple';
-  const price = laptop.price || 50000;
+  const scores = laptop.specScores || {
+    cpu: 85,
+    gpu: 78,
+    ram: 88,
+    cooling: 80,
+    display: 82,
+    battery: 75
+  };
 
-  // Calculate scores out of 100
-  const overall = scores.cpu ? Math.round((scores.cpu + (scores.gpu || 50) + (scores.ram || 60)) / 3) : 82;
-  const gaming = isRTX ? Math.min(98, 75 + (/rtx 4070|rtx 4080|rtx 4090/i.test(laptop.gpu) ? 20 : 10)) : (isApple ? 68 : 45);
-  const programming = Math.min(99, 65 + Math.round((ram / 32) * 25));
-  const videoEditing = Math.min(98, 55 + (isRTX ? 30 : 15));
-  const aiMl = Math.min(99, 40 + (/rtx 40/i.test(laptop.gpu) ? 45 : (isRTX ? 30 : 10)));
-  const battery = isApple ? 94 : (laptop.displaySize < 14.5 ? 82 : 62);
-  const portability = laptop.weight <= 1.4 ? 92 : (laptop.weight <= 1.8 ? 78 : 58);
-  const displayScore = laptop.refreshRate > 60 ? 88 : (/oled/i.test(laptop.display) ? 92 : 72);
-  const valueForMoney = price < 60000 && ram >= 16 ? 92 : (price < 100000 ? 84 : 76);
-
-  const metrics = [
-    { label: 'Overall System Index', score: overall, color: 'bg-emerald-500' },
-    { label: 'Gaming Performance', score: gaming, color: 'bg-indigo-500' },
-    { label: 'Programming & Compilation', score: programming, color: 'bg-blue-500' },
-    { label: 'Video Editing & Rendering', score: videoEditing, color: 'bg-purple-500' },
-    { label: 'AI / ML Workloads', score: aiMl, color: 'bg-cyan-500' },
-    { label: 'Battery Longevity', score: battery, color: 'bg-amber-500' },
-    { label: 'Portability & Chassis Weight', score: portability, color: 'bg-teal-500' },
-    { label: 'Display Optics & Color', score: displayScore, color: 'bg-rose-500' },
-    { label: 'Value for Money Rating', score: valueForMoney, color: 'bg-emerald-600' }
+  const scoreItems = [
+    { label: 'CPU Compile Speed', score: scores.cpu || 85, icon: <MdDeveloperMode size={18} />, color: 'bg-primary-500' },
+    { label: 'Graphics & Gaming', score: scores.gpu || 78, icon: <MdSportsEsports size={18} />, color: 'bg-indigo-500' },
+    { label: 'RAM Multitasking', score: scores.ram || 88, icon: <MdMemory size={18} />, color: 'bg-primary-500' },
+    { label: 'Battery Longevity', score: scores.battery || 75, icon: <MdBatteryChargingFull size={18} />, color: 'bg-amber-500' }
   ];
 
   return (
-    <div className="p-6 sm:p-8 bg-white dark:bg-darkCard rounded-3xl border border-gray-200 dark:border-darkBorder shadow-sm space-y-6">
-      <div>
-        <h2 className="font-outfit text-xl font-bold">Performance Benchmark Profile</h2>
-        <p className="text-xs text-gray-400 mt-0.5">Automated 1-100 rating scale calculated across key computing workloads.</p>
+    <div className="p-6 bg-white dark:bg-gray-900 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-sm space-y-5">
+      
+      <div className="flex items-center gap-3 border-b border-gray-100 dark:border-gray-800 pb-4">
+        <div className="p-2.5 bg-primary-500/10 text-primary-500 dark:text-primary-400 rounded-2xl">
+          <MdSpeed size={24} />
+        </div>
+        <div>
+          <h3 className="font-outfit font-bold text-base text-gray-900 dark:text-white">Performance Benchmark Profile</h3>
+          <p className="text-xs text-gray-500 dark:text-gray-400">Component score ratings evaluated for development and gaming workloads</p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-        {metrics.map((m, idx) => (
-          <div key={idx} className="space-y-1.5">
-            <div className="flex items-center justify-between text-xs">
-              <span className="font-semibold text-gray-700 dark:text-gray-300">{m.label}</span>
-              <span className="font-outfit font-black text-gray-900 dark:text-white">{m.score}/100</span>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {scoreItems.map((item, idx) => (
+          <div key={idx} className="p-4 bg-gray-50 dark:bg-gray-800/60 rounded-2xl border border-gray-100 dark:border-gray-800 space-y-2">
+            <div className="flex items-center justify-between text-xs font-bold text-gray-800 dark:text-gray-200">
+              <span className="flex items-center gap-2">
+                <span className="text-primary-500">{item.icon}</span>
+                <span>{item.label}</span>
+              </span>
+              <span className="font-outfit font-black text-primary-600 dark:text-primary-400">{item.score}/100</span>
             </div>
-            <div className="w-full h-2.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+
+            {/* Progress bar */}
+            <div className="w-full bg-gray-200 dark:bg-gray-700 h-2 rounded-full overflow-hidden">
               <div 
-                className={`h-full rounded-full transition-all duration-1000 ${m.color}`} 
-                style={{ width: `${m.score}%` }}
+                className={`h-full ${item.color} transition-all duration-500 rounded-full`} 
+                style={{ width: `${item.score}%` }} 
               />
             </div>
           </div>
         ))}
       </div>
+
     </div>
   );
 };

@@ -80,8 +80,8 @@ const ProductCarousel = ({ title, products, handleWishlistToggle, handleCompareT
 
             <div className="flex gap-2 mt-4 pt-3 border-t border-gray-50 dark:border-gray-800/50">
               <Link 
-                to={`/prices/${laptop._id}`}
-                className="flex-grow py-1.5 text-center bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-extrabold rounded-lg shadow-sm transition-colors flex items-center justify-center gap-1"
+                to={`/laptop/${laptop._id}/prices`}
+                className="flex-grow py-1.5 text-center bg-primary-500 hover:bg-primary-600 text-white text-[11px] font-extrabold rounded-lg shadow-sm transition-colors flex items-center justify-center gap-1"
               >
                 <ShoppingBag className="w-3 h-3" />
                 Check Prices
@@ -984,8 +984,8 @@ const Search = () => {
                     <div className="flex gap-2 mt-4 pt-3 border-t border-gray-50 dark:border-gray-800/50">
                       {/* Check Prices Button */}
                       <Link 
-                        to={`/prices/${laptop._id}`}
-                        className="flex-grow py-1.5 text-center bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-extrabold rounded-lg shadow-sm transition-colors flex items-center justify-center gap-1"
+                        to={`/laptop/${laptop._id}/prices`}
+                        className="flex-grow py-1.5 text-center bg-primary-500 hover:bg-primary-600 text-white text-[11px] font-extrabold rounded-lg shadow-sm transition-colors flex items-center justify-center gap-1"
                       >
                         <ShoppingBag className="w-3.5 h-3.5" />
                         Check Prices

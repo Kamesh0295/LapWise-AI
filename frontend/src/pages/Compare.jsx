@@ -77,11 +77,11 @@ const Compare = () => {
       </div>
 
       {/* Comparison Grid View */}
-      <div className="overflow-x-auto rounded-3xl border border-gray-200/50 dark:border-darkBorder shadow-sm bg-white dark:bg-darkCard">
+      <div className="overflow-x-auto rounded-3xl border border-gray-200 dark:border-gray-700 shadow-sm bg-white dark:bg-gray-900">
         <table className="w-full border-collapse text-left text-xs min-w-[700px]">
           <thead>
-            <tr className="border-b border-gray-200 dark:border-darkBorder bg-gray-50/50 dark:bg-gray-800/10">
-              <th className="p-4 sm:p-5 font-bold w-48 text-gray-400">Spec Metric</th>
+            <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+              <th className="p-4 sm:p-5 font-bold w-48 text-gray-500 dark:text-gray-400">Spec Metric</th>
               {compareList.map(laptop => (
                 <th key={laptop._id} className="p-4 sm:p-5 font-bold relative min-w-[180px]">
                   <button 

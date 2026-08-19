@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { MdArrowBack, MdRefresh, MdHelpOutline } from 'react-icons/md';
+import { MdArrowBack, MdRefresh } from 'react-icons/md';
 import priceService from '../services/priceService';
 import ProductOverview from '../components/price/ProductOverview';
 import SpecificationTable from '../components/price/SpecificationTable';
@@ -45,16 +45,16 @@ const LaptopShoppingPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F9FAFB] dark:bg-darkBg max-w-7xl mx-auto px-4 py-20 text-center space-y-6">
-        <div className="w-16 h-16 border-4 border-[#1E88E5] border-t-transparent rounded-full animate-spin mx-auto"></div>
-        <p className="text-sm font-bold text-[#6B7280] animate-pulse">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 max-w-7xl mx-auto px-4 py-20 text-center space-y-6">
+        <div className="w-16 h-16 border-4 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+        <p className="text-sm font-bold text-gray-500 dark:text-gray-400 animate-pulse">
           Fetching live retailer offers from Amazon, Flipkart, Croma & Official Stores...
         </p>
       </div>
     );
   }
 
-  // Fallback demo product matching prompt screenshot if ID fails or data empty
+  // Fallback product matching prompt screenshot if ID fails or data empty
   const demoLaptop = {
     _id: targetId || 'demo123',
     brand: 'ASUS',
@@ -104,14 +104,14 @@ const LaptopShoppingPage = () => {
   const lowestPrice = summary.lowestPrice || 30990;
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB] dark:bg-darkBg">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 space-y-8">
         
         {/* Top Header & Refresh Prices Action */}
-        <div className="flex items-center justify-between flex-wrap gap-4 border-b border-[#E5E7EB] dark:border-gray-800 pb-4">
+        <div className="flex items-center justify-between flex-wrap gap-4 border-b border-gray-200 dark:border-gray-800 pb-4">
           <Link 
             to={`/laptop/${laptop._id}`} 
-            className="inline-flex items-center gap-2 text-xs font-bold text-[#6B7280] hover:text-[#1E88E5] transition-colors"
+            className="inline-flex items-center gap-2 text-xs font-bold text-gray-600 dark:text-gray-300 hover:text-primary-500 dark:hover:text-primary-400 transition-colors"
           >
             <MdArrowBack size={18} />
             <span>Back to Laptop Specifications</span>
@@ -119,10 +119,10 @@ const LaptopShoppingPage = () => {
 
           <button
             onClick={() => fetchShoppingData(true)}
-            className="px-4 py-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-[#E5E7EB] dark:border-gray-700 rounded-xl hover:bg-gray-50 text-xs font-bold flex items-center gap-1.5 transition-all shadow-2xs"
+            className="px-4 py-2 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 text-xs font-bold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer"
             title="Refresh prices"
           >
-            <MdRefresh size={16} className="text-[#1E88E5]" />
+            <MdRefresh size={16} className="text-primary-500" />
             <span>Refresh Prices</span>
           </button>
         </div>

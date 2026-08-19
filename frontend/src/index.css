@@ -29,29 +29,53 @@
   .bg-lapwise-lightgreen {
     background-color: #EBF5EA;
   }
+  .dark .bg-lapwise-lightgreen {
+    background-color: #111827;
+  }
+
   .text-lapwise-green {
     color: #009944;
   }
+  .dark .text-lapwise-green {
+    color: #4ade80;
+  }
+
   .bg-lapwise-blue {
-    background-color: #1E88E5;
+    background-color: #0ea5e9;
   }
   .text-lapwise-blue {
-    color: #1E88E5;
+    color: #0ea5e9;
   }
+  .dark .text-lapwise-blue {
+    color: #38bdf8;
+  }
+
   .bg-lapwise-darkbuy {
     background-color: #181F2A;
   }
-  .text-lapwise-darkbuy {
-    color: #181F2A;
+  .dark .bg-lapwise-darkbuy {
+    background-color: #1f2937;
   }
+
   .text-lapwise-muted {
     color: #6B7280;
   }
+  .dark .text-lapwise-muted {
+    color: #9ca3af;
+  }
+
   .border-lapwise-divider {
     border-color: #E5E7EB;
   }
+  .dark .border-lapwise-divider {
+    border-color: #374151;
+  }
+
   .bg-lapwise-page {
     background-color: #F9FAFB;
+  }
+  .dark .bg-lapwise-page {
+    background-color: #030712;
   }
 }
 

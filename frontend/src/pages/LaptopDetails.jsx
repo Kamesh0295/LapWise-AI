@@ -289,16 +289,16 @@ const LaptopDetails = () => {
       </div>
 
       {/* Prominent Price Banner & Check Prices Navigation */}
-      <div className="bg-[#EBF5EA] dark:bg-emerald-950/30 border border-[#E5E7EB] dark:border-emerald-800/40 rounded-3xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="bg-[#EBF5EA] dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-3xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <span className="text-xs font-bold text-gray-500 uppercase tracking-wider block">Live Price Comparison</span>
-          <p className="text-sm font-extrabold text-[#009944] mt-1">
+          <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider block">Live Price Comparison</span>
+          <p className="text-sm font-extrabold text-[#009944] dark:text-green-400 mt-1">
             Compare prices across Amazon, Flipkart, Croma, Reliance Digital & Brand Stores
           </p>
         </div>
         <Link
           to={`/laptop/${laptop._id}/prices`}
-          className="px-6 py-3 bg-[#181F2A] hover:bg-gray-900 text-white font-outfit text-xs font-extrabold rounded-xl shadow-sm hover:scale-105 transition-all flex items-center gap-2"
+          className="px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white font-outfit text-xs font-extrabold rounded-xl shadow-sm hover:scale-105 transition-all flex items-center gap-2"
         >
           <span>Check Prices</span>
           <MdLaunch size={15} />
