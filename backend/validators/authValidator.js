@@ -1,7 +1,7 @@
 const { body, validationResult } = require('express-validator');
 const { ValidationError } = require('../utils/AppError');
 
-// Middleware to run the validation rules and throw formatted errors
+// Middleware to run validation rules and throw formatted errors
 const validate = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -26,8 +26,8 @@ const registerRules = [
   body('password')
     .notEmpty()
     .withMessage('Password is required')
-    .isLength({ min: 6 })
-    .withMessage('Password must be at least 6 characters long'),
+    .isLength({ min: 8 })
+    .withMessage('Password must be at least 8 characters long'),
   validate
 ];
 
@@ -58,30 +58,17 @@ const resetPasswordRules = [
   body('password')
     .notEmpty()
     .withMessage('Password is required')
-    .isLength({ min: 6 })
-    .withMessage('Password must be at least 6 characters long'),
+    .isLength({ min: 8 })
+    .withMessage('Password must be at least 8 characters long'),
   validate
 ];
 
 const changePasswordRules = [
-  body('oldPassword')
-    .notEmpty()
-    .withMessage('Old password is required'),
   body('newPassword')
     .notEmpty()
     .withMessage('New password is required')
-    .isLength({ min: 6 })
-    .withMessage('New password must be at least 6 characters long'),
-  validate
-];
-
-const resendVerificationRules = [
-  body('email')
-    .trim()
-    .notEmpty()
-    .withMessage('Email is required')
-    .isEmail()
-    .withMessage('Please specify a valid email address'),
+    .isLength({ min: 8 })
+    .withMessage('New password must be at least 8 characters long'),
   validate
 ];
 
@@ -90,6 +77,5 @@ module.exports = {
   loginRules,
   forgotPasswordRules,
   resetPasswordRules,
-  changePasswordRules,
-  resendVerificationRules
+  changePasswordRules
 };

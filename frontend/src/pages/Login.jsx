@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { MdEmail, MdLock, MdOutlineLogin } from 'react-icons/md';
-import { FaGoogle } from 'react-icons/fa';
+import GoogleSignInButton from '../components/common/GoogleSignInButton';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -25,23 +25,20 @@ const Login = () => {
       await login({ email, password });
       navigate(redirectPath);
     } catch (err) {
-      setErrorMsg(err.message || 'Login failed. Please inspect your email and password.');
+      setErrorMsg(err.message || err.response?.data?.message || 'Invalid email or password.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleGoogleMockLogin = async () => {
+  const handleGoogleSuccess = async (idToken) => {
     setErrorMsg('');
     setLoading(true);
     try {
-      // In a live environment, the Google SDK gives you an idToken.
-      // Here we simulate the loginWithGoogle service call with a dummy token.
-      const dummyIdToken = "google-sso-dummy-id-token";
-      await loginWithGoogle(dummyIdToken);
+      await loginWithGoogle(idToken);
       navigate(redirectPath);
     } catch (err) {
-      setErrorMsg(err.message || 'Google Single Sign-On failed.');
+      setErrorMsg(err.message || err.response?.data?.message || 'Google sign-in failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -51,23 +48,16 @@ const Login = () => {
     <div className="min-h-[80vh] flex items-center justify-center bg-gray-50 dark:bg-darkBg py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full bg-white dark:bg-darkCard border border-gray-200/50 dark:border-darkBorder rounded-3xl shadow-xl p-8 sm:p-10">
         
-        {/* Title */}
+        {/* Header */}
         <div className="text-center mb-8">
           <h2 className="font-outfit text-3xl font-extrabold text-gray-900 dark:text-white">Welcome Back</h2>
-          <p className="text-xs text-gray-400 mt-2">Sign in to sync your search history, alerts, and wishlists.</p>
+          <p className="text-xs text-gray-400 mt-2">Sign in to search laptops, compare prices, and manage your wishlist.</p>
         </div>
 
         {/* Error alert banner */}
         {errorMsg && (
           <div className="p-4 mb-6 text-xs text-red-600 bg-red-50 dark:bg-red-950/20 dark:text-red-400 rounded-xl border border-red-100 dark:border-red-900/50">
             <p>{errorMsg}</p>
-            {errorMsg.toLowerCase().includes('verify') && (
-              <div className="mt-2 pt-2 border-t border-red-200 dark:border-red-900/60">
-                <Link to="/verify-email" className="font-bold underline text-primary-500 hover:underline">
-                  Need a new verification link? Click here to resend
-                </Link>
-              </div>
-            )}
           </div>
         )}
 
@@ -107,11 +97,11 @@ const Login = () => {
             </div>
           </div>
 
-          {/* Submit */}
+          {/* Submit Button */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-primary-500 hover:bg-primary-600 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 shadow-md transition-all disabled:opacity-40"
+            className="w-full py-3 bg-[#181F2A] hover:bg-gray-900 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 shadow-md transition-all disabled:opacity-40"
           >
             {loading ? (
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -124,23 +114,20 @@ const Login = () => {
           </button>
         </form>
 
-        {/* Separator line */}
+        {/* Separator Divider */}
         <div className="relative my-6">
           <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-100 dark:border-gray-800" /></div>
-          <div className="relative flex justify-center text-xs font-medium"><span className="bg-white dark:bg-darkCard px-3 text-gray-400">Or continue with</span></div>
+          <div className="relative flex justify-center text-xs font-medium"><span className="bg-white dark:bg-darkCard px-3 text-gray-400">OR</span></div>
         </div>
 
-        {/* Google SSO Login */}
-        <button
-          onClick={handleGoogleMockLogin}
-          disabled={loading}
-          className="w-full py-2.5 border border-gray-200 dark:border-darkBorder hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-200 font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-colors"
-        >
-          <FaGoogle className="text-red-500" />
-          <span>Google Sign In</span>
-        </button>
+        {/* Google Identity Services Button */}
+        <GoogleSignInButton 
+          onGoogleSuccess={handleGoogleSuccess} 
+          onError={(err) => setErrorMsg(err)} 
+          text="continue_with"
+        />
 
-        {/* Signup redirection */}
+        {/* Signup Link */}
         <div className="mt-8 text-center text-xs text-gray-400">
           <span>Don't have an account? </span>
           <Link to="/register" className="font-bold text-primary-500 hover:text-primary-600">Register</Link>

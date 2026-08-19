@@ -7,23 +7,22 @@ const {
   loginRules,
   forgotPasswordRules,
   resetPasswordRules,
-  changePasswordRules,
-  resendVerificationRules
+  changePasswordRules
 } = require('../validators/authValidator');
 
 const router = express.Router();
 
-// Apply auth rate limiter to all auth-related actions
+// Public auth endpoints
 router.post('/register', authLimiter, registerRules, authController.register);
 router.post('/login', authLimiter, loginRules, authController.login);
 router.post('/logout', authController.logout);
-router.get('/verify-email/:token', authController.verifyEmail);
-router.post('/resend-verification', authLimiter, resendVerificationRules, authController.resendVerification);
+router.post('/google', authLimiter, authController.googleLogin);
+router.post('/google-login', authLimiter, authController.googleLogin);
 router.post('/forgot-password', authLimiter, forgotPasswordRules, authController.forgotPassword);
 router.post('/reset-password/:token', authLimiter, resetPasswordRules, authController.resetPassword);
-router.post('/google-login', authLimiter, authController.googleLogin);
 
-// Protected auth routes
+// Protected auth endpoints
+router.get('/me', protect, authController.getMe);
 router.put('/change-password', protect, changePasswordRules, authController.changePassword);
 
 module.exports = router;

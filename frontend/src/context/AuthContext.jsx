@@ -51,7 +51,12 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     setLoading(true);
     try {
-      return await authService.register(userData);
+      const response = await authService.register(userData);
+      const userObj = response?.data?.user;
+      if (userObj) {
+        setUser(userObj);
+      }
+      return response;
     } finally {
       setLoading(false);
     }

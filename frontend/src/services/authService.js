@@ -1,9 +1,12 @@
-// ESM import helper
 import apiInstance from './api';
 
 const authService = {
   register: async (userData) => {
     const response = await apiInstance.post('/auth/register', userData);
+    if (response.data?.data?.token) {
+      localStorage.setItem('token', response.data.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.data.user));
+    }
     return response.data;
   },
 
@@ -20,7 +23,6 @@ const authService = {
     try {
       await apiInstance.post('/auth/logout');
     } catch (err) {
-      // Log errors but clean up local storage regardless
       console.warn('Backend logout failed, clearing local storage anyway');
     }
     localStorage.removeItem('token');
@@ -43,18 +45,8 @@ const authService = {
     return response.data;
   },
 
-  verifyEmail: async (token) => {
-    const response = await apiInstance.get(`/auth/verify-email/${token}`);
-    return response.data;
-  },
-
-  resendVerification: async (email) => {
-    const response = await apiInstance.post('/auth/resend-verification', { email });
-    return response.data;
-  },
-
   googleLogin: async (idToken) => {
-    const response = await apiInstance.post('/auth/google-login', { idToken });
+    const response = await apiInstance.post('/auth/google', { idToken, credential: idToken });
     if (response.data?.data?.token) {
       localStorage.setItem('token', response.data.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.data.user));

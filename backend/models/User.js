@@ -24,9 +24,9 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: function () {
         // Password is only required if not logged in via Google SSO
-        return !this.googleId;
+        return !this.googleId && this.authProvider === 'local';
       },
-      minlength: [6, 'Password must be at least 6 characters'],
+      minlength: [8, 'Password must be at least 8 characters'],
       select: false, // Don't return password in query responses by default
     },
     role: {
@@ -38,12 +38,20 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: 'https://res.cloudinary.com/demo/image/upload/v1672531100/default-avatar_v1883.png',
     },
+    authProvider: {
+      type: String,
+      enum: ['local', 'google'],
+      default: 'local',
+    },
     isVerified: {
       type: Boolean,
-      default: false,
+      default: true,
     },
-    verificationToken: String,
-    verificationTokenExpire: Date,
+    googleId: {
+      type: String,
+      sparse: true, // Allows multiple null/undefined values, but unique when present
+      unique: true,
+    },
     resetPasswordToken: String,
     resetPasswordExpire: Date,
     recentlyViewed: [
@@ -52,11 +60,6 @@ const userSchema = new mongoose.Schema(
         ref: 'Laptop',
       },
     ],
-    googleId: {
-      type: String,
-      sparse: true, // Allows multiple null/undefined values, but unique when present
-      unique: true,
-    },
   },
   {
     timestamps: true,
@@ -65,7 +68,7 @@ const userSchema = new mongoose.Schema(
 
 // Hash password before saving to database
 userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) {
+  if (!this.isModified('password') || !this.password) {
     return next();
   }
   try {
@@ -79,6 +82,7 @@ userSchema.pre('save', async function (next) {
 
 // Compare user password with input password
 userSchema.methods.comparePassword = async function (enteredPassword) {
+  if (!this.password) return false;
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
