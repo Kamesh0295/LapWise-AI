@@ -85,7 +85,23 @@ const AppRoutes = () => {
         }
       />
       <Route
+        path="/signin"
+        element={
+          <MainLayout>
+            <Login />
+          </MainLayout>
+        }
+      />
+      <Route
         path="/register"
+        element={
+          <MainLayout>
+            <Register />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/signup"
         element={
           <MainLayout>
             <Register />
