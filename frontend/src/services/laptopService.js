@@ -81,6 +81,24 @@ const laptopService = {
   deleteLaptop: async (id) => {
     const response = await api.delete(`/laptops/${id}`);
     return response.data;
+  },
+
+  /**
+   * Get 4-6 similar laptops
+   * @param {string} id 
+   */
+  getSimilarLaptops: async (id) => {
+    const response = await api.get(`/laptops/${id}/similar`);
+    return response.data;
+  },
+
+  /**
+   * Get curated alternative options
+   * @param {string} id 
+   */
+  getAlternativeLaptops: async (id) => {
+    const response = await api.get(`/laptops/${id}/alternatives`);
+    return response.data;
   }
 };
 

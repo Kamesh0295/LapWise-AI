@@ -84,6 +84,22 @@ const AppRoutes = () => {
         }
       />
       <Route
+        path="/laptop/:id/prices"
+        element={
+          <MainLayout>
+            <PriceComparison />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/product/:id"
+        element={
+          <MainLayout>
+            <PriceComparison />
+          </MainLayout>
+        }
+      />
+      <Route
         path="/laptop/:id"
         element={
           <MainLayout>

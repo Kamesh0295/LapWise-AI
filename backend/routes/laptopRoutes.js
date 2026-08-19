@@ -18,6 +18,8 @@ router.get('/search', laptopController.searchCatalog);
 router.get('/filter', laptopController.filterCatalog);
 router.get('/', getCatalogOrAllLaptops);
 router.get('/:id', optionalProtect, laptopController.getLaptop);
+router.get('/:id/similar', laptopController.getSimilarLaptops);
+router.get('/:id/alternatives', laptopController.getAlternativeLaptops);
 
 // Admin-only protected routes
 router.post(

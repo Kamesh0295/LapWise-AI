@@ -698,6 +698,94 @@ const filterCatalog = async (req, res, next) => {
   }
 };
 
+/**
+ * GET /api/laptops/:id/similar
+ * Returns 4-6 similar laptops matching price range, CPU, GPU, RAM, Purpose, or Brand
+ */
+const getSimilarLaptops = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const laptop = await Laptop.findById(id);
+    if (!laptop) {
+      return next(new NotFoundError('Laptop not found.'));
+    }
+
+    const minP = Math.max(10000, laptop.price * 0.75);
+    const maxP = laptop.price * 1.25;
+
+    const query = {
+      _id: { $ne: laptop._id },
+      $or: [
+        { brand: laptop.brand },
+        { processor: laptop.processor },
+        { gpu: laptop.gpu },
+        { purpose: { $in: laptop.purpose || ['General'] } },
+        { price: { $gte: minP, $lte: maxP } }
+      ]
+    };
+
+    let similar = await Laptop.find(query).limit(6);
+    if (similar.length < 4) {
+      const fallback = await Laptop.find({ _id: { $ne: laptop._id } }).limit(6);
+      similar = fallback;
+    }
+
+    res.status(200).json(formatResponse('Similar laptops retrieved successfully', similar));
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * GET /api/laptops/:id/alternatives
+ * Returns curated alternative options (Better Performance, Cheaper, Better Battery, Better Gaming)
+ */
+const getAlternativeLaptops = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const laptop = await Laptop.findById(id);
+    if (!laptop) {
+      return next(new NotFoundError('Laptop not found.'));
+    }
+
+    // 1. Cheaper Alternative (< laptop.price)
+    const cheaper = await Laptop.findOne({ 
+      _id: { $ne: laptop._id },
+      price: { $lt: laptop.price }
+    }).sort({ price: -1 });
+
+    // 2. Better Performance / Gaming (higher CPU or RTX GPU)
+    const gaming = await Laptop.findOne({
+      _id: { $ne: laptop._id },
+      price: { $lte: laptop.price * 1.2 },
+      gpu: { $regex: /rtx 40|rtx 30/i }
+    }).sort({ price: 1 });
+
+    // 3. Better Battery / Portability (Apple or Ultrabook)
+    const battery = await Laptop.findOne({
+      _id: { $ne: laptop._id },
+      $or: [{ brand: 'Apple' }, { displaySize: { $lte: 14 } }]
+    }).sort({ rating: -1 });
+
+    // 4. Higher Spec / Display (OLED or higher RAM)
+    const displayOpt = await Laptop.findOne({
+      _id: { $ne: laptop._id },
+      $or: [{ display: { $regex: /oled/i } }, { ram: { $gte: 16 } }]
+    }).sort({ rating: -1 });
+
+    const alternatives = [
+      cheaper && { category: 'Cheaper Alternative', label: 'Save Money', laptop: cheaper },
+      gaming && { category: 'Better Gaming & GPU', label: 'Graphics Boost', laptop: gaming },
+      battery && { category: 'Better Battery & Portability', label: 'Longer Runtime', laptop: battery },
+      displayOpt && { category: 'Premium Display & RAM', label: 'Vibrant Panel', laptop: displayOpt }
+    ].filter(Boolean);
+
+    res.status(200).json(formatResponse('Alternative laptops retrieved successfully', alternatives));
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   addLaptop,
   updateLaptop,
@@ -706,5 +794,7 @@ module.exports = {
   getAllLaptops,
   getCatalog,
   searchCatalog,
-  filterCatalog
+  filterCatalog,
+  getSimilarLaptops,
+  getAlternativeLaptops
 };
