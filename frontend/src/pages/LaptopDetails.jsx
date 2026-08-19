@@ -237,10 +237,10 @@ const LaptopDetails = () => {
             <div className="flex items-center gap-4 flex-wrap">
               <span className="font-outfit text-3xl font-black text-emerald-600 dark:text-emerald-400">₹{laptop.price.toLocaleString('en-IN')}</span>
               <Link 
-                to={`/prices/${laptop._id}`}
-                className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-outfit text-xs font-extrabold rounded-xl shadow-md transition-all hover:scale-105"
+                to={`/laptop/${laptop._id}/prices`}
+                className="px-5 py-2.5 bg-[#181F2A] hover:bg-gray-900 text-white font-outfit text-xs font-extrabold rounded-xl shadow-md transition-all hover:scale-105"
               >
-                Compare Prices Across Stores
+                Check Prices
               </Link>
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">{laptop.description}</p>
@@ -288,103 +288,21 @@ const LaptopDetails = () => {
         </div>
       </div>
 
-      {/* Dynamic Upgrades: E-Commerce Price Comparison & Price History */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 border-t border-gray-100 dark:border-gray-850 pt-8">
-        {/* Available At E-Commerce links */}
-        <div className="lg:col-span-2 bg-white dark:bg-darkCard border border-gray-200/50 dark:border-darkBorder rounded-3xl p-6 shadow-sm space-y-4">
-          <h3 className="font-outfit text-base font-bold">Compare E-Commerce Offers</h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead>
-                <tr className="border-b border-gray-100 dark:border-gray-800 font-bold text-gray-400">
-                  <th className="py-2.5">Store</th>
-                  <th className="py-2.5">Price</th>
-                  <th className="py-2.5">Discount</th>
-                  <th className="py-2.5">Availability</th>
-                  <th className="py-2.5 text-center">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50 dark:divide-gray-800/40">
-                {((laptop.storeLinks && laptop.storeLinks.length > 0) ? laptop.storeLinks : [
-                  { storeName: 'Amazon', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg', price: laptop.price, discount: 10, availability: 'In Stock', buyUrl: 'https://www.amazon.in' },
-                  { storeName: 'Flipkart', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/7/7a/Flipkart_logo.svg', price: laptop.price - 1200, discount: 12, availability: 'In Stock', buyUrl: 'https://www.flipkart.com' }
-                ]).map((store, sIdx) => (
-                  <tr key={sIdx} className="align-middle">
-                    <td className="py-3 flex items-center gap-2">
-                      {store.logoUrl ? (
-                        <img src={store.logoUrl} alt={store.storeName} className="h-4 object-contain max-w-[80px] dark:brightness-200" />
-                      ) : (
-                        <span className="font-bold">{store.storeName}</span>
-                      )}
-                    </td>
-                    <td className="py-3 font-outfit font-extrabold text-gray-900 dark:text-white">
-                      ₹{store.price.toLocaleString('en-IN')}
-                    </td>
-                    <td className="py-3 text-green-500 font-bold">
-                      {store.discount > 0 ? `${store.discount}% OFF` : 'N/A'}
-                    </td>
-                    <td className="py-3">
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                        store.availability === 'In Stock' 
-                          ? 'bg-green-100 text-green-800 dark:bg-green-950/20 dark:text-green-400' 
-                          : 'bg-red-100 text-red-800 dark:bg-red-950/20 dark:text-red-400'
-                      }`}>
-                        {store.availability}
-                      </span>
-                    </td>
-                    <td className="py-3 text-center">
-                      <a 
-                        href={store.buyUrl} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="inline-block px-4 py-1.5 bg-primary-500 hover:bg-primary-600 text-white font-bold text-[10px] rounded-lg shadow-sm"
-                      >
-                        Buy Now
-                      </a>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+      {/* Prominent Price Banner & Check Prices Navigation */}
+      <div className="bg-[#EBF5EA] dark:bg-emerald-950/30 border border-[#E5E7EB] dark:border-emerald-800/40 rounded-3xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <span className="text-xs font-bold text-gray-500 uppercase tracking-wider block">Live Price Comparison</span>
+          <p className="text-sm font-extrabold text-[#009944] mt-1">
+            Compare prices across Amazon, Flipkart, Croma, Reliance Digital & Brand Stores
+          </p>
         </div>
-
-        {/* Price History Area Chart */}
-        <div className="bg-white dark:bg-darkCard border border-gray-200/50 dark:border-darkBorder rounded-3xl p-6 shadow-sm space-y-4">
-          <div>
-            <h3 className="font-outfit text-base font-bold">Price Analysis</h3>
-            <p className="text-[10px] text-gray-400 mt-1">
-              Lowest: <strong className="text-green-500">₹{Math.min(...((laptop.priceHistory && laptop.priceHistory.length > 0) ? laptop.priceHistory.map(h => h.price) : [laptop.price - 1500, laptop.price])).toLocaleString('en-IN')}</strong> | Highest: <strong className="text-red-500">₹{Math.max(...((laptop.priceHistory && laptop.priceHistory.length > 0) ? laptop.priceHistory.map(h => h.price) : [laptop.price + 4500, laptop.price])).toLocaleString('en-IN')}</strong>
-            </p>
-          </div>
-          <div className="h-44 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={
-                (laptop.priceHistory && laptop.priceHistory.length > 0) 
-                  ? laptop.priceHistory.map(h => ({
-                      date: new Date(h.recordedAt).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' }),
-                      Price: h.price
-                    }))
-                  : [
-                      { date: '2 M. Ago', Price: laptop.price + 4500 },
-                      { date: '1 M. Ago', Price: laptop.price - 1500 },
-                      { date: 'Today', Price: laptop.price }
-                    ]
-              }>
-                <defs>
-                  <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.2}/>
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <XAxis dataKey="date" stroke="#94a3b8" fontSize={9} tickLine={false} />
-                <YAxis hide domain={['auto', 'auto']} />
-                <Tooltip />
-                <Area type="monotone" dataKey="Price" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorPrice)" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+        <Link
+          to={`/laptop/${laptop._id}/prices`}
+          className="px-6 py-3 bg-[#181F2A] hover:bg-gray-900 text-white font-outfit text-xs font-extrabold rounded-xl shadow-sm hover:scale-105 transition-all flex items-center gap-2"
+        >
+          <span>Check Prices</span>
+          <MdLaunch size={15} />
+        </Link>
       </div>
 
       {/* Pros & Cons Section */}

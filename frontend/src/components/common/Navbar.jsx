@@ -112,9 +112,13 @@ const Navbar = () => {
         {/* Desktop Navigation Links */}
         <div className="hidden md:flex items-center gap-8">
           <Link to="/" className={location.pathname === '/' ? activeLinkClass : standardLinkClass}>Home</Link>
-          <Link to="/wizard" className={location.pathname === '/wizard' ? activeLinkClass : standardLinkClass}>Choose Help</Link>
-          <Link to="/search" className={location.pathname === '/search' ? activeLinkClass : standardLinkClass}>Browse Catalog</Link>
-          <Link to="/compare" className={location.pathname === '/compare' ? activeLinkClass : standardLinkClass}>Compare</Link>
+          {isAuthenticated && (
+            <>
+              <Link to="/wizard" className={location.pathname === '/wizard' || location.pathname === '/choose-help' ? activeLinkClass : standardLinkClass}>Choose Help</Link>
+              <Link to="/search" className={location.pathname === '/search' || location.pathname === '/browse' ? activeLinkClass : standardLinkClass}>Browse Catalog</Link>
+              <Link to="/compare" className={location.pathname === '/compare' ? activeLinkClass : standardLinkClass}>Compare</Link>
+            </>
+          )}
         </div>
 
         {/* Global Toolbar Menu Actions */}
@@ -129,25 +133,28 @@ const Navbar = () => {
             {theme === 'dark' ? <MdLightMode size={22} /> : <MdDarkMode size={22} />}
           </button>
 
-          {/* Comparison Icon Badge */}
-          <Link to="/compare" className="relative p-2 text-gray-500 hover:text-primary-500 dark:text-gray-400 dark:hover:text-primary-400" title="Compare list">
-            <MdCompareArrows size={24} />
-            {compareList.length > 0 && (
-              <span className="absolute top-0.5 right-0.5 w-5 h-5 flex items-center justify-center bg-blue-500 text-white font-bold text-[10px] rounded-full border border-white dark:border-darkBg animate-pulse">
-                {compareList.length}
-              </span>
-            )}
-          </Link>
+          {/* Comparison & Wishlist Badges (Authenticated users only) */}
+          {isAuthenticated && (
+            <>
+              <Link to="/compare" className="relative p-2 text-gray-500 hover:text-primary-500 dark:text-gray-400 dark:hover:text-primary-400" title="Compare list">
+                <MdCompareArrows size={24} />
+                {compareList.length > 0 && (
+                  <span className="absolute top-0.5 right-0.5 w-5 h-5 flex items-center justify-center bg-blue-500 text-white font-bold text-[10px] rounded-full border border-white dark:border-darkBg animate-pulse">
+                    {compareList.length}
+                  </span>
+                )}
+              </Link>
 
-          {/* Wishlist Icon Badge */}
-          <Link to="/wishlist" className="relative p-2 text-gray-500 hover:text-primary-500 dark:text-gray-400 dark:hover:text-primary-400" title="My Wishlist">
-            <MdFavoriteBorder size={23} />
-            {wishlist.length > 0 && (
-              <span className="absolute top-0.5 right-0.5 w-5 h-5 flex items-center justify-center bg-red-500 text-white font-bold text-[10px] rounded-full border border-white dark:border-darkBg">
-                {wishlist.length}
-              </span>
-            )}
-          </Link>
+              <Link to="/wishlist" className="relative p-2 text-gray-500 hover:text-primary-500 dark:text-gray-400 dark:hover:text-primary-400" title="My Wishlist">
+                <MdFavoriteBorder size={23} />
+                {wishlist.length > 0 && (
+                  <span className="absolute top-0.5 right-0.5 w-5 h-5 flex items-center justify-center bg-red-500 text-white font-bold text-[10px] rounded-full border border-white dark:border-darkBg">
+                    {wishlist.length}
+                  </span>
+                )}
+              </Link>
+            </>
+          )}
 
           {/* Notifications Dropdown Container */}
           {isAuthenticated && (
@@ -274,12 +281,12 @@ const Navbar = () => {
       {mobileMenuOpen && (
         <div className="md:hidden absolute top-16 inset-x-0 bg-white dark:bg-darkCard border-b border-gray-200 dark:border-darkBorder shadow-lg px-4 py-4 flex flex-col gap-4 animate-fade-in z-50">
           <Link to="/" onClick={() => setMobileMenuOpen(false)} className="py-2 text-sm font-semibold">Home</Link>
-          <Link to="/wizard" onClick={() => setMobileMenuOpen(false)} className="py-2 text-sm font-semibold">Choose Help</Link>
-          <Link to="/search" onClick={() => setMobileMenuOpen(false)} className="py-2 text-sm font-semibold">Browse Catalog</Link>
-          <Link to="/compare" onClick={() => setMobileMenuOpen(false)} className="py-2 text-sm font-semibold">Compare List ({compareList.length})</Link>
-          {isAuthenticated && <Link to="/wishlist" onClick={() => setMobileMenuOpen(false)} className="py-2 text-sm font-semibold">My Wishlist ({wishlist.length})</Link>}
           {isAuthenticated ? (
             <>
+              <Link to="/wizard" onClick={() => setMobileMenuOpen(false)} className="py-2 text-sm font-semibold">Choose Help</Link>
+              <Link to="/search" onClick={() => setMobileMenuOpen(false)} className="py-2 text-sm font-semibold">Browse Catalog</Link>
+              <Link to="/compare" onClick={() => setMobileMenuOpen(false)} className="py-2 text-sm font-semibold">Compare List ({compareList.length})</Link>
+              <Link to="/wishlist" onClick={() => setMobileMenuOpen(false)} className="py-2 text-sm font-semibold">My Wishlist ({wishlist.length})</Link>
               <div className="flex items-center gap-3 pb-3 border-b border-gray-100 dark:border-gray-800">
                 <UserAvatar user={user} size="w-9 h-9" />
                 <div className="overflow-hidden">

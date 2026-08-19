@@ -110,7 +110,7 @@ const LaptopShoppingPage = () => {
         {/* Top Header & Refresh Prices Action */}
         <div className="flex items-center justify-between flex-wrap gap-4 border-b border-[#E5E7EB] dark:border-gray-800 pb-4">
           <Link 
-            to={`/laptops/${laptop._id}`} 
+            to={`/laptop/${laptop._id}`} 
             className="inline-flex items-center gap-2 text-xs font-bold text-[#6B7280] hover:text-[#1E88E5] transition-colors"
           >
             <MdArrowBack size={18} />

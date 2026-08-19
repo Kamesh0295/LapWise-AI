@@ -26,7 +26,7 @@ import NotFound from '../pages/NotFound';
 const AppRoutes = () => {
   return (
     <Routes>
-      {/* 1. Public & Client routes wrapped inside MainLayout */}
+      {/* 1. Public Guest-Accessible Routes */}
       <Route
         path="/"
         element={
@@ -36,119 +36,13 @@ const AppRoutes = () => {
         }
       />
       <Route
-        path="/wizard"
+        path="/home"
         element={
           <MainLayout>
-            <RecommendationWizard />
+            <Home />
           </MainLayout>
         }
       />
-      <Route
-        path="/recommend"
-        element={
-          <MainLayout>
-            <RecommendationWizard />
-          </MainLayout>
-        }
-      />
-      <Route
-        path="/results"
-        element={
-          <MainLayout>
-            <RecommendationResult />
-          </MainLayout>
-        }
-      />
-      <Route
-        path="/recommendations"
-        element={
-          <MainLayout>
-            <RecommendationResult />
-          </MainLayout>
-        }
-      />
-      <Route
-        path="/laptops/:id"
-        element={
-          <MainLayout>
-            <LaptopDetails />
-          </MainLayout>
-        }
-      />
-      <Route
-        path="/prices/:laptopId"
-        element={
-          <MainLayout>
-            <PriceComparison />
-          </MainLayout>
-        }
-      />
-      <Route
-        path="/laptop/:id/prices"
-        element={
-          <MainLayout>
-            <PriceComparison />
-          </MainLayout>
-        }
-      />
-      <Route
-        path="/product/:id"
-        element={
-          <MainLayout>
-            <PriceComparison />
-          </MainLayout>
-        }
-      />
-      <Route
-        path="/laptop/:id"
-        element={
-          <MainLayout>
-            <LaptopDetails />
-          </MainLayout>
-        }
-      />
-      <Route
-        path="/details/:id"
-        element={
-          <MainLayout>
-            <LaptopDetails />
-          </MainLayout>
-        }
-      />
-      <Route
-        path="/compare"
-        element={
-          <MainLayout>
-            <Compare />
-          </MainLayout>
-        }
-      />
-      <Route
-        path="/search"
-        element={
-          <MainLayout>
-            <Search />
-          </MainLayout>
-        }
-      />
-      <Route
-        path="/catalog"
-        element={
-          <MainLayout>
-            <Search />
-          </MainLayout>
-        }
-      />
-      <Route
-        path="/laptops"
-        element={
-          <MainLayout>
-            <Search />
-          </MainLayout>
-        }
-      />
-      
-      {/* Authentication views */}
       <Route
         path="/login"
         element={
@@ -206,7 +100,173 @@ const AppRoutes = () => {
         }
       />
 
-      {/* 2. Protected Client routes wrapped inside MainLayout */}
+      {/* 2. Protected Client Routes (Guest redirect to /login?redirect=...) */}
+      <Route
+        path="/wizard"
+        element={
+          <PrivateRoute>
+            <MainLayout>
+              <RecommendationWizard />
+            </MainLayout>
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/choose-help"
+        element={
+          <PrivateRoute>
+            <MainLayout>
+              <RecommendationWizard />
+            </MainLayout>
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/recommend"
+        element={
+          <PrivateRoute>
+            <MainLayout>
+              <RecommendationWizard />
+            </MainLayout>
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/results"
+        element={
+          <PrivateRoute>
+            <MainLayout>
+              <RecommendationResult />
+            </MainLayout>
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/recommendations"
+        element={
+          <PrivateRoute>
+            <MainLayout>
+              <RecommendationResult />
+            </MainLayout>
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/search"
+        element={
+          <PrivateRoute>
+            <MainLayout>
+              <Search />
+            </MainLayout>
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/browse"
+        element={
+          <PrivateRoute>
+            <MainLayout>
+              <Search />
+            </MainLayout>
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/catalog"
+        element={
+          <PrivateRoute>
+            <MainLayout>
+              <Search />
+            </MainLayout>
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/laptops"
+        element={
+          <PrivateRoute>
+            <MainLayout>
+              <Search />
+            </MainLayout>
+          </PrivateRoute>
+        }
+      />
+
+      {/* PAGE 1: Laptop Specifications Page */}
+      <Route
+        path="/laptop/:id"
+        element={
+          <PrivateRoute>
+            <MainLayout>
+              <LaptopDetails />
+            </MainLayout>
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/laptops/:id"
+        element={
+          <PrivateRoute>
+            <MainLayout>
+              <LaptopDetails />
+            </MainLayout>
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/details/:id"
+        element={
+          <PrivateRoute>
+            <MainLayout>
+              <LaptopDetails />
+            </MainLayout>
+          </PrivateRoute>
+        }
+      />
+
+      {/* PAGE 2: Price & Availability Page */}
+      <Route
+        path="/laptop/:id/prices"
+        element={
+          <PrivateRoute>
+            <MainLayout>
+              <PriceComparison />
+            </MainLayout>
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/prices/:laptopId"
+        element={
+          <PrivateRoute>
+            <MainLayout>
+              <PriceComparison />
+            </MainLayout>
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/product/:id"
+        element={
+          <PrivateRoute>
+            <MainLayout>
+              <PriceComparison />
+            </MainLayout>
+          </PrivateRoute>
+        }
+      />
+
+      {/* Protected Compare & Wishlist */}
+      <Route
+        path="/compare"
+        element={
+          <PrivateRoute>
+            <MainLayout>
+              <Compare />
+            </MainLayout>
+          </PrivateRoute>
+        }
+      />
       <Route
         path="/wishlist"
         element={
@@ -258,7 +318,7 @@ const AppRoutes = () => {
         }
       />
 
-      {/* 3. Administrative Console routes wrapped inside AdminLayout */}
+      {/* 3. Administrative Console Routes */}
       <Route
         path="/admin"
         element={
